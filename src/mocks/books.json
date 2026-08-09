@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "title": "The Pragmatic Programmer",
+    "author": "Andrew Hunt & David Thomas",
+    "year": 1999,
+    "genre": "Software Engineering",
+    "status": "available",
+    "isbn": "978-0201616224",
+    "coverColor": "#4a5568"
+  },
+  {
+    "id": 2,
+    "title": "Clean Code",
+    "author": "Robert C. Martin",
+    "year": 2008,
+    "genre": "Software Engineering",
+    "status": "borrowed",
+    "isbn": "978-0132350884",
+    "coverColor": "#2d3748"
+  },
+  {
+    "id": 3,
+    "title": "Design Patterns",
+    "author": "Erich Gamma et al.",
+    "year": 1994,
+    "genre": "Software Architecture",
+    "status": "available",
+    "isbn": "978-0201633610",
+    "coverColor": "#553c9a"
+  },
+  {
+    "id": 4,
+    "title": "Domain-Driven Design",
+    "author": "Eric Evans",
+    "year": 2003,
+    "genre": "Software Architecture",
+    "status": "available",
+    "isbn": "978-0321125217",
+    "coverColor": "#744210"
+  },
+  {
+    "id": 5,
+    "title": "Refactoring",
+    "author": "Martin Fowler",
+    "year": 1999,
+    "genre": "Software Engineering",
+    "status": "borrowed",
+    "isbn": "978-0201485677",
+    "coverColor": "#22543d"
+  },
+  {
+    "id": 6,
+    "title": "You Don't Know JS",
+    "author": "Kyle Simpson",
+    "year": 2015,
+    "genre": "Programming",
+    "status": "available",
+    "isbn": "978-1491904244",
+    "coverColor": "#c53030"
+  },
+  {
+    "id": 7,
+    "title": "The Mythical Man-Month",
+    "author": "Frederick P. Brooks Jr.",
+    "year": 1975,
+    "genre": "Project Management",
+    "status": "available",
+    "isbn": "978-0201835953",
+    "coverColor": "#2c5282"
+  },
+  {
+    "id": 8,
+    "title": "Introduction to Algorithms",
+    "author": "Thomas H. Cormen et al.",
+    "year": 2009,
+    "genre": "Computer Science",
+    "status": "borrowed",
+    "isbn": "978-0262033848",
+    "coverColor": "#1a365d"
+  },
+  {
+    "id": 9,
+    "title": "Continuous Delivery",
+    "author": "Jez Humble & David Farley",
+    "year": 2010,
+    "genre": "DevOps",
+    "status": "available",
+    "isbn": "978-0321601919",
+    "coverColor": "#276749"
+  },
+  {
+    "id": 10,
+    "title": "Building Microservices",
+    "author": "Sam Newman",
+    "year": 2015,
+    "genre": "Software Architecture",
+    "status": "available",
+    "isbn": "978-1491950358",
+    "coverColor": "#702459"
+  },
+  {
+    "id": 11,
+    "title": "Site Reliability Engineering",
+    "author": "Niall Richard Murphy et al.",
+    "year": 2016,
+    "genre": "DevOps",
+    "status": "available",
+    "isbn": "978-1491929128",
+    "coverColor": "#744210"
+  },
+  {
+    "id": 12,
+    "title": "The Phoenix Project",
+    "author": "Gene Kim et al.",
+    "year": 2013,
+    "genre": "DevOps",
+    "status": "borrowed",
+    "isbn": "978-0988262591",
+    "coverColor": "#c05621"
+  }
+]

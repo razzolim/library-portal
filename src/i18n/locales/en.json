@@ -1,0 +1,48 @@
+{
+  "app": {
+    "title": "Library Portal",
+    "login": "Login",
+    "library": "Library",
+    "logout": "Logout",
+    "welcome": "Welcome, {name}",
+    "books": "Books"
+  },
+  "login": {
+    "title": "Welcome to the Library",
+    "subtitle": "Sign in to browse the collection",
+    "username": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "demoCredentials": "Demo credentials:",
+    "invalidCredentials": "Invalid username or password.",
+    "unexpectedError": "An unexpected error occurred. Please try again."
+  },
+  "library": {
+    "title": "Library Collection",
+    "subtitle": "Browse all available books. Use the search box to filter by title or author.",
+    "searchPlaceholder": "Search by title or author...",
+    "booksCount": "{count} book | {count} books",
+    "loading": "Loading books...",
+    "error": "Failed to load books. Please try again later.",
+    "empty": "No books found matching your search.",
+    "available": "Available",
+    "borrowed": "Borrowed",
+    "year": "Year",
+    "genre": "Genre"
+  },
+  "pagination": {
+    "itemsPerPage": "Items per page",
+    "previous": "Previous",
+    "next": "Next",
+    "pageInfo": "Page {current} of {total}",
+    "showing": "Showing {start} to {end} of {total} books"
+  },
+  "language": {
+    "label": "Language",
+    "english": "English",
+    "portuguese": "Português"
+  }
+}

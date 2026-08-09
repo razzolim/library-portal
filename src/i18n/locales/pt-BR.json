@@ -1,0 +1,48 @@
+{
+  "app": {
+    "title": "Portal da Biblioteca",
+    "login": "Entrar",
+    "library": "Biblioteca",
+    "logout": "Sair",
+    "welcome": "Bem-vindo, {name}",
+    "books": "Livros"
+  },
+  "login": {
+    "title": "Bem-vindo à Biblioteca",
+    "subtitle": "Entre para navegar pelo acervo",
+    "username": "Usuário",
+    "usernamePlaceholder": "Digite seu usuário",
+    "password": "Senha",
+    "passwordPlaceholder": "Digite sua senha",
+    "signIn": "Entrar",
+    "signingIn": "Entrando...",
+    "demoCredentials": "Credenciais de demonstração:",
+    "invalidCredentials": "Usuário ou senha inválidos.",
+    "unexpectedError": "Ocorreu um erro inesperado. Tente novamente."
+  },
+  "library": {
+    "title": "Acervo da Biblioteca",
+    "subtitle": "Navegue por todos os livros disponíveis. Use a caixa de busca para filtrar por título ou autor.",
+    "searchPlaceholder": "Busque por título ou autor...",
+    "booksCount": "{count} livro | {count} livros",
+    "loading": "Carregando livros...",
+    "error": "Falha ao carregar livros. Tente novamente mais tarde.",
+    "empty": "Nenhum livro encontrado para sua busca.",
+    "available": "Disponível",
+    "borrowed": "Emprestado",
+    "year": "Ano",
+    "genre": "Gênero"
+  },
+  "pagination": {
+    "itemsPerPage": "Itens por página",
+    "previous": "Anterior",
+    "next": "Próxima",
+    "pageInfo": "Página {current} de {total}",
+    "showing": "Mostrando {start} a {end} de {total} livros"
+  },
+  "language": {
+    "label": "Idioma",
+    "english": "English",
+    "portuguese": "Português"
+  }
+}
