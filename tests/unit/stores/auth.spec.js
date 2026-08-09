@@ -64,7 +64,7 @@ describe('Auth Store', () => {
   it('clears state on logout', async () => {
     const auth = useAuthStore()
     await auth.login({ username: 'reader', password: 'reader' })
-    auth.logout()
+    await auth.logout()
 
     expect(auth.isAuthenticated).toBe(false)
     expect(auth.user).toBeNull()

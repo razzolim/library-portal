@@ -76,3 +76,17 @@ export async function fetchBookById(id) {
   const { data } = await client.get(`/books/${id}`)
   return data
 }
+
+/**
+ * Logout API.
+ * Sends a POST to /auth/logout with the Authorization header and no body.
+ * In mock mode, the request is skipped and resolves immediately.
+ */
+export async function logout() {
+  if (USE_MOCK_API) {
+    return { success: true }
+  }
+
+  await client.post('/auth/logout')
+  return { success: true }
+}
