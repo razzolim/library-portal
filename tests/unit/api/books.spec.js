@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { authenticate, fetchBooks, fetchBookById } from '../../../src/api/books.js'
+import { authenticate, fetchBooks, fetchBookById, logout } from '../../../src/api/books.js'
 import books from '../../../src/mocks/books.json'
 
 describe('Books API', () => {
@@ -49,5 +49,11 @@ describe('Books API', () => {
     const result = await fetchBookById(99999)
 
     expect(result).toBeNull()
+  })
+
+  it('returns success on logout', async () => {
+    const result = await logout()
+
+    expect(result.success).toBe(true)
   })
 })

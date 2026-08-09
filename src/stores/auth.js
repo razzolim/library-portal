@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authenticate } from '../api/books.js'
+import { authenticate, logout as logoutApi } from '../api/books.js'
 import { i18n } from '../i18n'
 
 const STORAGE_KEY = 'library_portal_auth'
@@ -55,7 +55,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function logout() {
+  async function logout() {
+    await logoutApi()
     user.value = null
     token.value = null
     localStorage.removeItem(STORAGE_KEY)
