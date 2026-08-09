@@ -12,11 +12,6 @@
       </div>
 
       <LoginForm :is-loading="auth.isLoading" @submit="handleLogin" />
-
-      <div class="login-view__hint">
-        <p>{{ $t('login.demoCredentials') }}</p>
-        <code>reader / reader</code>
-      </div>
     </div>
   </div>
 </template>
