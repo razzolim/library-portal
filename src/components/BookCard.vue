@@ -1,5 +1,9 @@
 <template>
-  <article class="book-card">
+  <RouterLink
+    :to="{ name: 'book-detail', params: { id: book.id } }"
+    class="book-card"
+    :aria-label="$t('bookDetail.ariaLabel', { title: book.title })"
+  >
     <div class="book-card__cover" :style="{ backgroundColor: coverColor }">
       <span class="book-card__initials">{{ initials }}</span>
     </div>
@@ -12,11 +16,12 @@
       </div>
       <span class="book-card__status" :class="statusClass">{{ statusLabel }}</span>
     </div>
-  </article>
+  </RouterLink>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({

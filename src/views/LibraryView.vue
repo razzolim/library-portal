@@ -40,18 +40,28 @@
         />
       </template>
     </div>
+
+    <BookDetailModal
+      v-if="selectedBookId"
+      :book-id="selectedBookId"
+      @close="handleCloseDetail"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { fetchBooks } from '../api/books.js'
 import BookCard from '../components/BookCard.vue'
+import BookDetailModal from '../components/BookDetailModal.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import PaginationControls from '../components/PaginationControls.vue'
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 
 const books = ref([])
 const isLoading = ref(false)
@@ -59,6 +69,15 @@ const error = ref(null)
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = ref(12)
+
+const selectedBookId = computed(() => {
+  const id = route.params.id
+  return id ? Number(id) : null
+})
+
+function handleCloseDetail() {
+  router.push({ name: 'library' })
+}
 
 const filteredBooks = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()

@@ -31,7 +31,17 @@
     "available": "Disponível",
     "borrowed": "Emprestado",
     "year": "Ano",
-    "genre": "Gênero"
+    "genre": "Gênero",
+    "status": "Status"
+  },
+  "bookDetail": {
+    "ariaLabel": "Ver detalhes de {title}",
+    "close": "Fechar",
+    "loading": "Carregando detalhes do livro...",
+    "notFound": "Livro não encontrado.",
+    "error": "Falha ao carregar detalhes do livro. Tente novamente mais tarde.",
+    "isbn": "ISBN",
+    "summary": "Resumo"
   },
   "pagination": {
     "itemsPerPage": "Itens por página",
