@@ -31,7 +31,17 @@
     "available": "Available",
     "borrowed": "Borrowed",
     "year": "Year",
-    "genre": "Genre"
+    "genre": "Genre",
+    "status": "Status"
+  },
+  "bookDetail": {
+    "ariaLabel": "View details for {title}",
+    "close": "Close",
+    "loading": "Loading book details...",
+    "notFound": "Book not found.",
+    "error": "Failed to load book details. Please try again later.",
+    "isbn": "ISBN",
+    "summary": "Summary"
   },
   "pagination": {
     "itemsPerPage": "Items per page",
