@@ -14,6 +14,11 @@
   --color-warning-bg: #fef3c7;
   --color-error: #991b1b;
   --color-error-bg: #fee2e2;
+  --color-danger: #991b1b;
+  --color-danger-soft: #fee2e2;
+  --color-primary-soft: #dbeafe;
+  --color-background: var(--color-bg);
+  --color-background-soft: var(--color-bg-secondary);
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
@@ -54,4 +59,60 @@ a {
 
 a:hover {
   text-decoration: underline;
+}
+
+/* Markdown content rendered from the change log API */
+.change-log__description h2,
+.change-log__description h3,
+.change-log__description h4 {
+  margin: 1.25rem 0 0.75rem;
+  color: var(--color-text);
+}
+
+.change-log__description p {
+  margin: 0 0 0.75rem;
+}
+
+.change-log__description ul,
+.change-log__description ol {
+  margin: 0 0 0.75rem 1.5rem;
+  padding: 0;
+}
+
+.change-log__description li {
+  margin-bottom: 0.25rem;
+}
+
+.change-log__description blockquote {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 1rem;
+  border-left: 4px solid var(--color-border);
+  color: var(--color-text-muted);
+  background-color: var(--color-background-soft);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.change-log__description code {
+  padding: 0.125rem 0.25rem;
+  background-color: var(--color-muted);
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.change-log__description pre {
+  padding: 1rem;
+  background-color: var(--color-muted);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+.change-log__description pre code {
+  padding: 0;
+  background: none;
+}
+
+.change-log__description strong {
+  font-weight: 600;
+  color: var(--color-text);
 }

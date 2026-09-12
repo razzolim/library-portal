@@ -46,6 +46,15 @@
             <h3 class="book-detail-modal__summary-title">{{ $t('bookDetail.summary') }}</h3>
             <p class="book-detail-modal__summary-text">{{ book.summary }}</p>
           </div>
+
+          <button
+            v-if="hasPdf"
+            type="button"
+            class="book-detail-modal__read-button"
+            @click="openPdfInNewTab"
+          >
+            {{ $t('bookDetail.readOnline') }}
+          </button>
         </div>
       </div>
     </div>
@@ -54,8 +63,10 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { fetchBookById } from '../api/books.js'
+import { getDrivePreviewUrl } from '../utils/drive.js'
 import LoadingSpinner from './LoadingSpinner.vue'
 
 const props = defineProps({
@@ -68,12 +79,26 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const { t } = useI18n()
+const router = useRouter()
 
 const book = ref(null)
 const isLoading = ref(false)
 const error = ref(null)
 
+const bookId = computed(() => {
+  return typeof props.bookId === 'string' ? parseInt(props.bookId, 10) : props.bookId
+})
+
 const coverColor = computed(() => book.value?.coverColor || '#3b82f6')
+
+const previewUrl = computed(() => {
+  if (!book.value?.pdfUrl) {
+    return null
+  }
+  return getDrivePreviewUrl(book.value.pdfUrl)
+})
+
+const hasPdf = computed(() => Boolean(previewUrl.value))
 
 const initials = computed(() => {
   if (!book.value) return ''
@@ -103,6 +128,19 @@ function handleClose() {
   emit('close')
 }
 
+function openPdfInNewTab() {
+  if (!bookId.value || !previewUrl.value) {
+    return
+  }
+
+  const routeUrl = router.resolve({
+    name: 'book-read',
+    params: { id: bookId.value }
+  }).href
+
+  window.open(routeUrl, '_blank', 'noopener,noreferrer')
+}
+
 function handleOverlayClick(event) {
   if (event.target === event.currentTarget) {
     handleClose()
@@ -120,8 +158,7 @@ async function loadBook() {
   error.value = null
 
   try {
-    const id = typeof props.bookId === 'string' ? parseInt(props.bookId, 10) : props.bookId
-    book.value = await fetchBookById(id)
+    book.value = await fetchBookById(bookId.value)
     if (!book.value) {
       error.value = t('bookDetail.notFound')
     }
@@ -301,6 +338,31 @@ onUnmounted(() => {
   font-size: 0.95rem;
   color: var(--color-text);
   line-height: 1.6;
+}
+
+.book-detail-modal__read-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.book-detail-modal__read-button:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.book-detail-modal__read-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
 @media (max-width: 480px) {

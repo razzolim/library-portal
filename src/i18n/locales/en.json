@@ -7,6 +7,26 @@
     "welcome": "Welcome, {name}",
     "books": "Books"
   },
+  "profile": {
+    "menuLabel": "Profile menu",
+    "myAccount": "My account"
+  },
+  "account": {
+    "title": "Account",
+    "profile": "Profile",
+    "preferences": "Preferences",
+    "fullName": "Full name",
+    "username": "Username",
+    "role": "Role",
+    "backToLibrary": "Back to library"
+  },
+  "changelog": {
+    "title": "Change log",
+    "loading": "Loading change log...",
+    "error": "Failed to load the change log. Please try again later.",
+    "empty": "No updates available yet.",
+    "backToLibrary": "Back to library"
+  },
   "login": {
     "title": "Welcome to the Library",
     "subtitle": "Sign in to browse the collection",
@@ -41,7 +61,14 @@
     "notFound": "Book not found.",
     "error": "Failed to load book details. Please try again later.",
     "isbn": "ISBN",
-    "summary": "Summary"
+    "summary": "Summary",
+    "readOnline": "Read online"
+  },
+  "pdfViewer": {
+    "title": "Book reader",
+    "close": "Close",
+    "loading": "Loading reader...",
+    "error": "Failed to load the reader. Please try again later."
   },
   "pagination": {
     "itemsPerPage": "Items per page",

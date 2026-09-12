@@ -10,11 +10,16 @@ This is the **MVP (Minimum Viable Product)** frontend. The backend API is not ye
 
 - **Login page** (`/login`) with form validation.
 - **Library page** (`/library`) that lists all books and lets the user filter them by title or author.
+- **Book detail modal** with metadata, summary, and an online reader button.
+- **PDF reader** that opens the book PDF in a new browser tab using a full-screen Google Drive preview viewer (mock data only). The download button is hidden by the Drive preview mode.
 - **Pagination** with a user-selectable number of items per page (6, 12, 24, 48).
 - **Authentication guard** that redirects unauthenticated users to the login page.
-- **Internationalization (i18n)** with support for English (`en`) and Brazilian Portuguese (`pt-BR`), including a language switcher in the header.
-- **Mock API layer** for authentication and book data, so the real backend can be swapped in later.
-- **Automated tests** for the auth store, the login form, the language switcher, pagination, and the mock API.
+- **Internationalization (i18n)** with support for English (`en`) and Brazilian Portuguese (`pt-BR`). The language switcher lives on the **Account** page.
+- **Profile menu** in the header with a dropdown linking to **My account** and **Logout**.
+- **Account page** (`/account`) showing the current user's profile and language preference.
+- **Change log** link in the footer that opens a dedicated page (`/changelog`) showing portal updates. Descriptions are Markdown and rendered as formatted HTML.
+- **Mock API layer** for authentication, book data, and the change log, so the real backend can be swapped in later.
+- **Automated tests** for the auth store, the login form, the language switcher, pagination, the mock API, the PDF viewer, and the new profile menu and change log.
 
 ---
 
@@ -58,17 +63,27 @@ library-portal/
     │       └── pt-BR.json     # Brazilian Portuguese translations
     ├── mocks/
     │   ├── books.json         # Mock book data
-    │   └── users.json         # Mock user data
+    │   ├── users.json         # Mock user data
+    │   └── changelog.json     # Mock change log entries
     ├── views/
     │   ├── LoginView.vue      # Login page
-    │   └── LibraryView.vue    # Book listing page
+    │   ├── LibraryView.vue    # Book listing page
+    │   ├── BookPdfView.vue    # Full-screen PDF reader in a new tab
+    │   ├── AccountView.vue    # User account and language settings
+    │   └── ChangeLogView.vue  # Change log page
     ├── components/
-    │   ├── AppHeader.vue      # Header with logout
+    │   ├── AppHeader.vue      # Header with profile menu dropdown
     │   ├── LoginForm.vue      # Reusable login form
     │   ├── BookCard.vue       # Book card component
+    │   ├── BookDetailModal.vue # Book detail modal
+    │   ├── BookPdfViewer.vue  # Full-screen PDF viewer overlay
     │   ├── LoadingSpinner.vue # Loading indicator
-    │   ├── LanguageSwitcher.vue # Language selector
-    │   └── PaginationControls.vue # Pagination bar
+    │   ├── LanguageSwitcher.vue # Language selector (used in the account page)
+    │   ├── PaginationControls.vue # Pagination bar
+    │   └── ChangeLog.vue      # Markdown-rendered change log list
+    ├── utils/
+    │   ├── drive.js           # Google Drive preview URL conversion
+    │   └── markdown.js        # Markdown rendering and sanitization
     └── assets/
         └── styles.css         # Global styles and CSS variables
 └── tests/
@@ -76,10 +91,13 @@ library-portal/
     ├── test-utils.js          # Shared test helpers (mount with i18n)
     └── unit/
         ├── api/books.spec.js                 # Mock API tests
+        ├── components/BookDetailModal.spec.js # Book detail modal tests
+        ├── components/BookPdfViewer.spec.js   # PDF viewer tests
         ├── components/LoginForm.spec.js    # Login form tests
         ├── components/LanguageSwitcher.spec.js  # Language switcher tests
         ├── components/PaginationControls.spec.js  # Pagination tests
-        └── stores/auth.spec.js               # Auth store tests
+        ├── stores/auth.spec.js               # Auth store tests
+        └── utils/drive.spec.js               # Drive URL utility tests
 ```
 
 ---
@@ -204,8 +222,11 @@ The portal uses Vite's built-in `.env` support. Environment variables that need 
    - Use the **Items per page** selector to display 6, 12, 24, or 48 books at a time.
    - Use the **Previous** / **Next** buttons to navigate pages.
    - Books show their status: **Available** or **Borrowed**.
-6. Use the **Language** dropdown in the header to switch between **English** and **Português (Brasil)**.
-7. Click **Logout** in the header to return to the login page.
+   - Click a book card to open its detail modal.
+6. On the book detail modal, click **Read online** (if available) to open the PDF reader in a new browser tab. The reader uses Google Drive preview mode, which hides the standard download button.
+7. Click the **profile icon** in the header to open the user menu. Choose **My account** to view your profile and change the language, or choose **Logout** to return to the login page.
+8. The language switcher is now on the **Account** page.
+9. Click the **Change log** link in the footer to view all portal updates.
 
 ---
 
@@ -214,9 +235,11 @@ The portal uses Vite's built-in `.env` support. Environment variables that need 
 Because the backend is not yet implemented, the portal uses JSON mock files:
 
 - `src/mocks/users.json` — contains the demo user (`reader / reader`).
-- `src/mocks/books.json` — contains 12 sample books.
+- `src/mocks/books.json` — contains 12 sample books. Each book has an optional `pdfUrl` field that can point to a Google Drive share link.
 
 The mock API functions in `src/api/books.js` return Promises with a small delay (`500ms`) to simulate network latency.
+
+> **Note:** The `pdfUrl` is currently expected to be a Google Drive share link. The frontend converts it to a Google Drive `/preview` URL and embeds it in the book detail viewer. This hides the standard Drive download button, but it does not make the file completely unfindable to a determined user. In a future iteration, the backend will replace the direct Drive link with a URL served by a backend proxy, keeping the original Google Drive URL hidden from the browser.
 
 ---
 
@@ -274,13 +297,39 @@ The API layer already supports real backend calls. To switch from mock data to t
 npm run dev:backend
 ```
 
+See [`BACKEND_API.md`](./BACKEND_API.md) for the complete API contract the backend must implement.
+
 The expected backend endpoints are:
 
 | Function | Method | Endpoint | Payload / Response |
 |---|---|---|---|
 | `authenticate` | `POST` | `/auth/login` | `{ username, password }` → `{ success, user, token }` |
-| `fetchBooks` | `GET` | `/books` | Array of books. |
+| `logout` | `POST` | `/auth/logout` | `{ success: true }` (token is sent in the `Authorization` header). |
+| `fetchBooks` | `GET` | `/books` | Array of books. Each book may include `pdfUrl` (a backend URL or Google Drive link). |
 | `fetchBookById` | `GET` | `/books/:id` | Single book or `null` / `404`. |
+| `fetchChangelog` | `GET` | `/changelog` | Array of change log entries. Each entry must include `id`, `version`, `date`, `title`, and `description` (Markdown). |
+
+### PDF reader
+
+The `pdfUrl` field in the book response should be a URL that the browser can embed in an iframe. In the current MVP the mock `pdfUrl` values are Google Drive share links, which the frontend converts to the Google Drive `/preview` embed URL.
+
+When a user clicks **Read online** on the book detail modal, the frontend opens the dedicated route `/library/:id/read` in a new browser tab. That route renders the full-screen PDF reader. This keeps the book detail modal open while the user reads the file in a separate tab.
+
+When the backend proxy is implemented, the backend should return its own proxy URL in `pdfUrl` instead, keeping the original Google Drive URL hidden from the browser.
+
+### Change log endpoint
+
+The change log endpoint (`GET /changelog`) should return an ordered list of updates. Each entry must include:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string / number | Unique identifier for the entry. |
+| `version` | string | Version or release label (e.g., `1.3.0`). |
+| `date` | string | ISO date (`YYYY-MM-DD`) or any displayable date string. |
+| `title` | string | Short update title. |
+| `description` | string | Markdown-formatted description. The frontend renders this as sanitized HTML. |
+
+> **Note:** The frontend uses `marked` to parse Markdown and `DOMPurify` to sanitize the resulting HTML before rendering it in the UI.
 
 If the backend host or port changes, update the environment variables instead of the source code:
 
@@ -332,7 +381,54 @@ npm run test:ui     # Run tests with the Vitest UI
   - Rejects invalid credentials.
   - Returns the list of books with expected fields.
   - Returns a book by ID.
+  - Returns a book with a `pdfUrl` field.
   - Returns `null` for unknown IDs.
+
+- **Book detail modal** (`tests/unit/components/BookDetailModal.spec.js`)
+  - Renders book details after loading.
+  - Renders a **Read online** button when the book has a `pdfUrl`.
+  - Hides the button when the book has no `pdfUrl`.
+  - Opens the PDF viewer when the button is clicked.
+
+- **PDF viewer** (`tests/unit/components/BookPdfViewer.spec.js`)
+  - Renders the iframe with the Google Drive preview URL.
+  - Emits close on button click, overlay click, or Escape key.
+  - Shows a loading state until the iframe loads.
+
+- **PDF reader view** (`tests/unit/views/BookPdfView.spec.js`)
+  - Renders the full-screen viewer when the book has a valid `pdfUrl`.
+  - Shows an error when the book has no `pdfUrl` or is not found.
+  - Closes the browser tab when the viewer emits close.
+
+- **Drive URL utility** (`tests/unit/utils/drive.spec.js`)
+  - Extracts the file ID from a Google Drive share link.
+  - Converts a share link to the `/preview` embed URL.
+  - Returns `null` for invalid or missing URLs.
+
+- **AppHeader** (`tests/unit/components/AppHeader.spec.js`)
+  - Renders the profile icon and welcome message.
+  - Opens the dropdown with "My account" and "Logout" options.
+  - Navigates to the account page.
+  - Logs out and redirects to the login page.
+  - Closes the dropdown on outside click and Escape key.
+
+- **Account view** (`tests/unit/views/AccountView.spec.js`)
+  - Displays the user's profile details.
+  - Includes the language switcher.
+  - Navigates back to the library.
+
+- **Change log API** (`tests/unit/api/changelog.spec.js`)
+  - Returns mock change log entries with the expected fields.
+  - Returns a copy of the mock data.
+
+- **Change log component** (`tests/unit/components/ChangeLog.spec.js`)
+  - Renders entries after loading.
+  - Renders Markdown descriptions as HTML.
+  - Handles empty and error states.
+
+- **Markdown utility** (`tests/unit/utils/markdown.spec.js`)
+  - Renders headings, bold text, and lists.
+  - Sanitizes malicious input.
 
 ---
 
@@ -350,7 +446,8 @@ Any other username/password combination will be rejected by the mock API.
 ## Next Steps / Suggestions
 
 - Connect the real authentication and book endpoints.
-- Add book detail page (`/books/:id`).
+- Implement the backend PDF proxy so the frontend never receives the raw Google Drive URL.
+- Add a real backend endpoint for `GET /changelog` with Markdown descriptions.
 - Add user role-based permissions (e.g., admin can add/edit books).
 - Add a CSS framework such as Tailwind CSS if preferred.
 - Add E2E tests with Cypress or Playwright.
