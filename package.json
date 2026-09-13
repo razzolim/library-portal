@@ -4,7 +4,7 @@
   "description": "A minimal Vue 3 library portal MVP with login and book browsing.",
   "type": "module",
   "scripts": {
-    "start": "vite",
+    "start": "vite --host --port 5173",
     "dev": "vite",
     "dev:localhost": "vite --mode localhost",
     "build": "vite build",
