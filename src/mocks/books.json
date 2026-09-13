@@ -8,7 +8,8 @@
     "status": "available",
     "isbn": "978-0201616224",
     "coverColor": "#4a5568",
-    "summary": "A classic guide for software developers that emphasizes practical approaches, adaptability, and continuous learning to write maintainable code."
+    "summary": "A classic guide for software developers that emphasizes practical approaches, adaptability, and continuous learning to write maintainable code.",
+    "pdfUrl": "https://drive.google.com/file/d/1cElC7xqVArPo9jZMWDksRHtIwCxSq-qi/view?usp=drive_link"
   },
   {
     "id": 2,
@@ -19,7 +20,8 @@
     "status": "borrowed",
     "isbn": "978-0132350884",
     "coverColor": "#2d3748",
-    "summary": "Presents principles and patterns for writing readable, testable, and maintainable code, with case studies and heuristics for refactoring."
+    "summary": "Presents principles and patterns for writing readable, testable, and maintainable code, with case studies and heuristics for refactoring.",
+    "pdfUrl": null
   },
   {
     "id": 3,
@@ -30,7 +32,8 @@
     "status": "available",
     "isbn": "978-0201633610",
     "coverColor": "#553c9a",
-    "summary": "Introduces reusable object-oriented design patterns that solve common software engineering problems and improve system flexibility."
+    "summary": "Introduces reusable object-oriented design patterns that solve common software engineering problems and improve system flexibility.",
+    "pdfUrl": "https://drive.google.com/file/d/1cElC7xqVArPo9jZMWDksRHtIwCxSq-qi/view?usp=drive_link"
   },
   {
     "id": 4,
@@ -41,7 +44,8 @@
     "status": "available",
     "isbn": "978-0321125217",
     "coverColor": "#744210",
-    "summary": "Explores how to align complex software design with business domains through ubiquitous language, bounded contexts, and rich domain models."
+    "summary": "Explores how to align complex software design with business domains through ubiquitous language, bounded contexts, and rich domain models.",
+    "pdfUrl": null
   },
   {
     "id": 5,
@@ -52,7 +56,8 @@
     "status": "borrowed",
     "isbn": "978-0201485677",
     "coverColor": "#22543d",
-    "summary": "A catalog of techniques for improving the design of existing code while preserving behavior, making it easier to understand and extend."
+    "summary": "A catalog of techniques for improving the design of existing code while preserving behavior, making it easier to understand and extend.",
+    "pdfUrl": "https://drive.google.com/file/d/1cElC7xqVArPo9jZMWDksRHtIwCxSq-qi/view?usp=drive_link"
   },
   {
     "id": 6,
@@ -63,7 +68,8 @@
     "status": "available",
     "isbn": "978-1491904244",
     "coverColor": "#c53030",
-    "summary": "A deep dive into JavaScript's core mechanisms, including scope, closures, this, prototypes, and asynchronous programming."
+    "summary": "A deep dive into JavaScript's core mechanisms, including scope, closures, this, prototypes, and asynchronous programming.",
+    "pdfUrl": null
   },
   {
     "id": 7,
@@ -74,7 +80,8 @@
     "status": "available",
     "isbn": "978-0201835953",
     "coverColor": "#2c5282",
-    "summary": "Brooks' essays on software project management, including the famous observation that adding manpower to a late project makes it later."
+    "summary": "Brooks' essays on software project management, including the famous observation that adding manpower to a late project makes it later.",
+    "pdfUrl": "https://drive.google.com/file/d/1cElC7xqVArPo9jZMWDksRHtIwCxSq-qi/view?usp=drive_link"
   },
   {
     "id": 8,
@@ -85,7 +92,8 @@
     "status": "borrowed",
     "isbn": "978-0262033848",
     "coverColor": "#1a365d",
-    "summary": "A comprehensive reference covering a wide range of algorithms and data structures, with analysis and design techniques."
+    "summary": "A comprehensive reference covering a wide range of algorithms and data structures, with analysis and design techniques.",
+    "pdfUrl": null
   },
   {
     "id": 9,
@@ -96,7 +104,8 @@
     "status": "available",
     "isbn": "978-0321601919",
     "coverColor": "#276749",
-    "summary": "Describes practices for building, testing, and deploying software reliably and rapidly through automation and fast feedback loops."
+    "summary": "Describes practices for building, testing, and deploying software reliably and rapidly through automation and fast feedback loops.",
+    "pdfUrl": "https://drive.google.com/file/d/1cElC7xqVArPo9jZMWDksRHtIwCxSq-qi/view?usp=drive_link"
   },
   {
     "id": 10,
@@ -107,7 +116,8 @@
     "status": "available",
     "isbn": "978-1491950358",
     "coverColor": "#702459",
-    "summary": "Offers practical guidance on designing, building, and operating microservice-based systems, including trade-offs and integration patterns."
+    "summary": "Offers practical guidance on designing, building, and operating microservice-based systems, including trade-offs and integration patterns.",
+    "pdfUrl": null
   },
   {
     "id": 11,
@@ -118,7 +128,8 @@
     "status": "available",
     "isbn": "978-1491929128",
     "coverColor": "#744210",
-    "summary": "Explains how Google runs production systems, blending software engineering with operations to create scalable and reliable services."
+    "summary": "Explains how Google runs production systems, blending software engineering with operations to create scalable and reliable services.",
+    "pdfUrl": "https://drive.google.com/file/d/1cElC7xqVArPo9jZMWDksRHtIwCxSq-qi/view?usp=drive_link"
   },
   {
     "id": 12,
@@ -129,6 +140,7 @@
     "status": "borrowed",
     "isbn": "978-0988262591",
     "coverColor": "#c05621",
-    "summary": "A business novel that illustrates DevOps principles through the story of an IT organization turning around a failing project and company."
+    "summary": "A business novel that illustrates DevOps principles through the story of an IT organization turning around a failing project and company.",
+    "pdfUrl": null
   }
 ]

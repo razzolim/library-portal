@@ -13,11 +13,22 @@ const book = {
   status: 'available',
   isbn: '978-0201616224',
   coverColor: '#4a5568',
-  summary: 'A classic guide for software developers that emphasizes practical approaches.'
+  summary: 'A classic guide for software developers that emphasizes practical approaches.',
+  pdfUrl: 'https://drive.google.com/file/d/1cElC7xqVArPo9jZMWDksRHtIwCxSq-qi/view?usp=drive_link'
+}
+
+const mockResolve = vi.fn()
+const mockRouter = {
+  resolve: mockResolve
 }
 
 vi.mock('../../../src/api/books.js', () => ({
   fetchBookById: vi.fn()
+}))
+
+vi.mock('vue-router', () => ({
+  useRouter: () => mockRouter,
+  useRoute: () => ({})
 }))
 
 import { fetchBookById } from '../../../src/api/books.js'
@@ -31,6 +42,7 @@ function mountModal(props = {}) {
 describe('BookDetailModal', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockResolve.mockReturnValue({ href: '/library/1/read' })
   })
 
   it('renders loading state initially', async () => {
@@ -82,5 +94,50 @@ describe('BookDetailModal', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 
     expect(wrapper.emitted('close')).toHaveLength(1)
+  })
+
+  it('renders a read online button when the book has a valid pdfUrl', async () => {
+    fetchBookById.mockResolvedValue(book)
+
+    const wrapper = mountModal()
+    await flushPromises()
+
+    expect(wrapper.find('.book-detail-modal__read-button').exists()).toBe(true)
+  })
+
+  it('does not render a read online button when the book has no pdfUrl', async () => {
+    fetchBookById.mockResolvedValue({ ...book, pdfUrl: null })
+
+    const wrapper = mountModal()
+    await flushPromises()
+
+    expect(wrapper.find('.book-detail-modal__read-button').exists()).toBe(false)
+  })
+
+  it('does not render a read online button when the pdfUrl is invalid', async () => {
+    fetchBookById.mockResolvedValue({ ...book, pdfUrl: 'not-a-drive-url' })
+
+    const wrapper = mountModal()
+    await flushPromises()
+
+    expect(wrapper.find('.book-detail-modal__read-button').exists()).toBe(false)
+  })
+
+  it('opens the book reader in a new tab when the read online button is clicked', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => {})
+    fetchBookById.mockResolvedValue(book)
+
+    const wrapper = mountModal()
+    await flushPromises()
+
+    await wrapper.find('.book-detail-modal__read-button').trigger('click')
+
+    expect(mockResolve).toHaveBeenCalledWith({
+      name: 'book-read',
+      params: { id: 1 }
+    })
+    expect(openSpy).toHaveBeenCalledWith('/library/1/read', '_blank', 'noopener,noreferrer')
+
+    openSpy.mockRestore()
   })
 })

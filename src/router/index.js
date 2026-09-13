@@ -2,6 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import LoginView from '../views/LoginView.vue'
 import LibraryView from '../views/LibraryView.vue'
+import BookPdfView from '../views/BookPdfView.vue'
+import AccountView from '../views/AccountView.vue'
+import ChangeLogView from '../views/ChangeLogView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,6 +29,24 @@ const router = createRouter({
       path: '/library/:id',
       name: 'book-detail',
       component: LibraryView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/library/:id/read',
+      name: 'book-read',
+      component: BookPdfView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/account',
+      name: 'account',
+      component: AccountView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/changelog',
+      name: 'changelog',
+      component: ChangeLogView,
       meta: { requiresAuth: true }
     },
     {

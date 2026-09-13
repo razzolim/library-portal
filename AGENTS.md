@@ -4,7 +4,7 @@ This document provides the context and conventions agents need when working with
 
 ## Project Overview
 
-This is a **minimal Vue 3 single-page frontend** for a library. It allows users to log in and browse a book collection. The project is currently an MVP that works against in-memory mock data, but it is architected so that a real backend can be swapped in without changing the rest of the application.
+This is a **minimal Vue 3 single-page frontend** for a library. It allows users to log in, browse a book collection, view their account profile, change the language, and read a change log of portal updates. The project is currently an MVP that works against in-memory mock data, but it is architected so that a real backend can be swapped in without changing the rest of the application.
 
 ## Tech Stack
 
@@ -39,11 +39,13 @@ library-portal/
     ├── stores/auth.js          # Pinia auth store
     ├── api/
     │   ├── client.js           # Axios client with env-based baseURL
-    │   └── books.js            # API functions (mock or real)
+    │   ├── books.js            # API functions for auth and books (mock or real)
+    │   └── changelog.js        # API function for the change log (mock or real)
     ├── i18n/                   # Translations and locale config
     ├── mocks/                  # Static JSON mock data
     ├── views/                  # Page-level components
     ├── components/             # Reusable components
+    ├── utils/                  # Shared utilities (drive URL, markdown rendering)
     └── assets/styles.css       # Global CSS + CSS variables
 ```
 
@@ -106,16 +108,37 @@ baseURL: http://localhost:3000/api
 ### API Layer
 
 - All HTTP requests go through `src/api/client.js`.
-- API functions live in `src/api/books.js`.
+- API functions live in `src/api/books.js` (auth + books) and `src/api/changelog.js` (change log).
+- The backend contract is documented in `BACKEND_API.md`.
 - When `VITE_USE_MOCK_API` is `true`, functions return in-memory mock data with a 500ms delay.
 - When `VITE_USE_MOCK_API` is `false`, functions call the real backend.
 - The default behavior is **mock** when the variable is missing, so tests and initial setup keep working.
+
+### Change log
+
+- Change log entries are fetched via `fetchChangelog()` in `src/api/changelog.js`.
+- The backend endpoint is `GET /changelog`.
+- Each entry must contain: `id`, `version`, `date`, `title`, and `description`.
+- The `description` field is Markdown. The frontend renders it using `marked` and sanitizes the result with `DOMPurify` via `src/utils/markdown.js`.
+
+### PDF Viewer
+
+- The `pdfUrl` returned in book data should be an embeddable URL. In the current mock data it is a Google Drive share link, which `src/utils/drive.js` converts to the Google Drive `/preview` URL.
+- A future backend proxy will replace the raw Google Drive link with a proxy URL, keeping the original Drive URL hidden from the browser. The `pdfUrl` contract stays the same: the frontend receives an embeddable URL and loads it in the `BookPdfViewer` iframe.
+- The reader is displayed on a dedicated route (`/library/:id/read`) that opens in a new browser tab when the user clicks **Read online** on the book detail modal.
 
 ### Styling
 
 - Use plain CSS with BEM-like naming (e.g. `.login-view__card`).
 - CSS variables are defined in `src/assets/styles.css`.
 - Prefer `rem` units and the existing variables for colors, spacing, and radii.
+
+### Header / Profile menu
+
+- The header component is `src/components/AppHeader.vue`.
+- The user profile is accessed via a profile icon that opens a dropdown with **My account** and **Logout**.
+- **My account** navigates to the `/account` route (`src/views/AccountView.vue`).
+- The language switcher is no longer in the header; it lives on the account page.
 
 ### i18n
 
@@ -126,9 +149,10 @@ baseURL: http://localhost:3000/api
 ### Tests
 
 - Tests are in `tests/unit/`, mirroring the `src/` structure.
-- Use `mount` from `@vue/test-utils` with the i18n helper in `tests/test-utils.js` for components.
+- Use `mount` from `@vue/test-utils` with the i18n helper in `tests/unit/test-utils.js` for components.
 - The test environment is `jsdom` and `globals` are enabled.
 - Tests should keep using the mock data by default; they do not need a running backend.
+- Utility tests should also live in `tests/unit/`, mirroring the `src/utils/` structure.
 
 ## Common Tasks
 

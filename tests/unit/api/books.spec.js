@@ -45,6 +45,18 @@ describe('Books API', () => {
     expect(result.id).toBe(1)
   })
 
+  it('returns a book with pdfUrl field', async () => {
+    const result = await fetchBookById(1)
+
+    expect(result).toHaveProperty('pdfUrl')
+  })
+
+  it('returns a book with a valid pdfUrl when available', async () => {
+    const result = await fetchBookById(1)
+
+    expect(result.pdfUrl).toContain('drive.google.com')
+  })
+
   it('returns null for unknown id', async () => {
     const result = await fetchBookById(99999)
 

@@ -7,6 +7,26 @@
     "welcome": "Bem-vindo, {name}",
     "books": "Livros"
   },
+  "profile": {
+    "menuLabel": "Menu de perfil",
+    "myAccount": "Minha conta"
+  },
+  "account": {
+    "title": "Conta",
+    "profile": "Perfil",
+    "preferences": "Preferências",
+    "fullName": "Nome completo",
+    "username": "Usuário",
+    "role": "Função",
+    "backToLibrary": "Voltar à biblioteca"
+  },
+  "changelog": {
+    "title": "Registro de alterações",
+    "loading": "Carregando registro de alterações...",
+    "error": "Falha ao carregar o registro de alterações. Tente novamente mais tarde.",
+    "empty": "Nenhuma atualização disponível ainda.",
+    "backToLibrary": "Voltar à biblioteca"
+  },
   "login": {
     "title": "Bem-vindo à Biblioteca",
     "subtitle": "Entre para navegar pelo acervo",
@@ -41,7 +61,14 @@
     "notFound": "Livro não encontrado.",
     "error": "Falha ao carregar detalhes do livro. Tente novamente mais tarde.",
     "isbn": "ISBN",
-    "summary": "Resumo"
+    "summary": "Resumo",
+    "readOnline": "Ler online"
+  },
+  "pdfViewer": {
+    "title": "Leitor de livro",
+    "close": "Fechar",
+    "loading": "Carregando leitor...",
+    "error": "Falha ao carregar o leitor. Tente novamente mais tarde."
   },
   "pagination": {
     "itemsPerPage": "Itens por página",
