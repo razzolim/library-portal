@@ -9,5 +9,10 @@ export default defineConfig({
     globals: true,
     include: ['tests/**/*.{test,spec}.js'],
     setupFiles: ['./tests/setup.js']
-  }
+  },
+  server: {
+    allowedHosts: true,           // allow any host (simplest for Railway)
+    host: true,
+    port: Number(process.env.PORT) || 5173,
+  },
 })
