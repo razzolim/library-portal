@@ -2,7 +2,7 @@
   <div class="login-view">
     <div class="login-view__card">
       <div class="login-view__header">
-        <span class="login-view__logo">📚</span>
+        <LibraryIcon class="login-view__logo" :size="56" :aria-label="$t('app.title')" />
         <h2 class="login-view__title">{{ $t('login.title') }}</h2>
         <p class="login-view__subtitle">{{ $t('login.subtitle') }}</p>
       </div>
@@ -20,6 +20,7 @@
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import LoginForm from '../components/LoginForm.vue'
+import LibraryIcon from '../components/icons/LibraryIcon.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -64,9 +65,8 @@ async function handleLogin(credentials) {
 }
 
 .login-view__logo {
-  font-size: 2.5rem;
   display: block;
-  margin-bottom: 0.75rem;
+  margin: 0 auto 0.75rem;
 }
 
 .login-view__title {

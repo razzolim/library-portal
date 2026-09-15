@@ -51,6 +51,16 @@ describe('AppHeader', () => {
     expect(wrapper.text()).toContain('Welcome, reader')
   })
 
+  it('navigates to the library when the brand is clicked', async () => {
+    const { wrapper, router } = mountHeader({ user: { id: 1, username: 'reader', fullName: 'Demo Reader', role: 'reader' } })
+    await router.isReady()
+
+    await wrapper.find('.header__brand').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.name).toBe('library')
+  })
+
   it('renders the profile button', () => {
     const { wrapper } = mountHeader({ user: { id: 1, username: 'reader', fullName: 'Demo Reader', role: 'reader' } })
     expect(wrapper.find('.header__profile-button').exists()).toBe(true)

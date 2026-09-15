@@ -13,6 +13,12 @@
           type="text"
           :placeholder="$t('library.searchPlaceholder')"
         />
+        <select v-model="selectedCategory" class="library-view__category" :aria-label="$t('library.categoryFilter')">
+          <option value="">{{ $t('library.allCategories') }}</option>
+          <option v-for="category in availableCategories" :key="category" :value="category">
+            {{ category }}
+          </option>
+        </select>
         <span class="library-view__count">
           {{ $t('library.booksCount', { count: filteredBooks.length }) }}
         </span>
@@ -67,6 +73,7 @@ const books = ref([])
 const isLoading = ref(false)
 const error = ref(null)
 const searchQuery = ref('')
+const selectedCategory = ref('')
 const currentPage = ref(1)
 const itemsPerPage = ref(12)
 
@@ -79,15 +86,23 @@ function handleCloseDetail() {
   router.push({ name: 'library' })
 }
 
+const availableCategories = computed(() => {
+  const categories = new Set(books.value.map((book) => book.genre).filter(Boolean))
+  return Array.from(categories).sort()
+})
+
 const filteredBooks = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
-  if (!query) return books.value
+  const category = selectedCategory.value
 
-  return books.value.filter(
-    (book) =>
+  return books.value.filter((book) => {
+    const matchesQuery =
+      !query ||
       book.title.toLowerCase().includes(query) ||
       book.author.toLowerCase().includes(query)
-  )
+    const matchesCategory = !category || book.genre === category
+    return matchesQuery && matchesCategory
+  })
 })
 
 const paginatedBooks = computed(() => {
@@ -96,6 +111,10 @@ const paginatedBooks = computed(() => {
 })
 
 watch(searchQuery, () => {
+  currentPage.value = 1
+})
+
+watch(selectedCategory, () => {
   currentPage.value = 1
 })
 
@@ -165,6 +184,22 @@ onMounted(() => {
 }
 
 .library-view__search:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.library-view__category {
+  min-width: 180px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  background-color: var(--color-white);
+  color: var(--color-text);
+}
+
+.library-view__category:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);

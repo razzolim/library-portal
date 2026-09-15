@@ -5,7 +5,8 @@
     "library": "Biblioteca",
     "logout": "Sair",
     "welcome": "Bem-vindo, {name}",
-    "books": "Livros"
+    "books": "Livros",
+    "backToLibrary": "Voltar à biblioteca"
   },
   "profile": {
     "menuLabel": "Menu de perfil",
@@ -48,6 +49,8 @@
     "loading": "Carregando livros...",
     "error": "Falha ao carregar livros. Tente novamente mais tarde.",
     "empty": "Nenhum livro encontrado para sua busca.",
+    "allCategories": "Todas as categorias",
+    "categoryFilter": "Filtrar por categoria",
     "available": "Disponível",
     "borrowed": "Emprestado",
     "year": "Ano",

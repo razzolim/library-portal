@@ -5,7 +5,8 @@
     "library": "Library",
     "logout": "Logout",
     "welcome": "Welcome, {name}",
-    "books": "Books"
+    "books": "Books",
+    "backToLibrary": "Back to library"
   },
   "profile": {
     "menuLabel": "Profile menu",
@@ -48,6 +49,8 @@
     "loading": "Loading books...",
     "error": "Failed to load books. Please try again later.",
     "empty": "No books found matching your search.",
+    "allCategories": "All categories",
+    "categoryFilter": "Filter by category",
     "available": "Available",
     "borrowed": "Borrowed",
     "year": "Year",
