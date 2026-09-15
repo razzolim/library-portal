@@ -5,6 +5,8 @@
       <RouterView />
     </main>
     <footer v-if="auth.isAuthenticated" class="app-footer">
+      <span class="app-footer__version">{{ $t('app.version', { version: appVersion }) }}</span>
+      <span class="app-footer__separator" aria-hidden="true">·</span>
       <RouterLink :to="{ name: 'changelog' }" class="app-footer__link">
         {{ $t('changelog.title') }}
       </RouterLink>
@@ -16,8 +18,10 @@
 import { RouterView } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import AppHeader from './components/AppHeader.vue'
+import { getLatestChangelogVersion } from './utils/changelog.js'
 
 const auth = useAuthStore()
+const appVersion = getLatestChangelogVersion()
 </script>
 
 <style scoped>
@@ -49,6 +53,16 @@ const auth = useAuthStore()
 
 .app-footer__link:hover {
   text-decoration: underline;
+}
+
+.app-footer__version,
+.app-footer__separator {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.app-footer__separator {
+  margin: 0 0.5rem;
 }
 
 @media (max-width: 600px) {
