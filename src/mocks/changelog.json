@@ -1,5 +1,12 @@
 [
   {
+    "id": "5",
+    "version": "1.4.0",
+    "date": "2026-09-14",
+    "title": "Navigation, filtering, and icon refresh",
+    "description": "## What's new\n\n- The **library brand** in the header is now clickable and returns you to the main library page.\n- **Book tiles** are fully clickable blocks with a stronger hover effect (lift, shadow, and primary border) to improve navigation feedback.\n- A new **category filter** is available on the library page, letting you narrow results by genre (e.g., DevOps, Software Architecture, Software Engineering).\n- The old book emoji has been replaced with a **custom minimalist library icon**, which is also used as the new favicon.\n\n## Behind the scenes\n\n- Added test environment defaults so the test suite reliably uses mock data without a running backend."
+  },
+  {
     "id": "1",
     "version": "1.3.0",
     "date": "2026-08-15",

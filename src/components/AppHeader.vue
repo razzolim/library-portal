@@ -1,9 +1,9 @@
 <template>
   <header class="header">
-    <div class="header__brand">
-      <span class="header__logo">📚</span>
+    <RouterLink :to="{ name: 'library' }" class="header__brand" :aria-label="$t('app.backToLibrary')">
+      <LibraryIcon class="header__logo" :aria-label="$t('app.title')" />
       <h1 class="header__title">{{ $t('app.title') }}</h1>
-    </div>
+    </RouterLink>
     <div class="header__user">
       <span class="header__welcome">{{ $t('app.welcome', { name: auth.username }) }}</span>
       <div class="header__profile" ref="menuRef">
@@ -36,8 +36,9 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import LibraryIcon from '../components/icons/LibraryIcon.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -97,10 +98,24 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease;
+}
+
+.header__brand:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.header__brand:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
 }
 
 .header__logo {
-  font-size: 1.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 .header__title {
