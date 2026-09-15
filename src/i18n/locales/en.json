@@ -6,7 +6,8 @@
     "logout": "Logout",
     "welcome": "Welcome, {name}",
     "books": "Books",
-    "backToLibrary": "Back to library"
+    "backToLibrary": "Back to library",
+    "version": "v{version}"
   },
   "profile": {
     "menuLabel": "Profile menu",

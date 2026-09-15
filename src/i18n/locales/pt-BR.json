@@ -6,7 +6,8 @@
     "logout": "Sair",
     "welcome": "Bem-vindo, {name}",
     "books": "Livros",
-    "backToLibrary": "Voltar à biblioteca"
+    "backToLibrary": "Voltar à biblioteca",
+    "version": "v{version}"
   },
   "profile": {
     "menuLabel": "Menu de perfil",
