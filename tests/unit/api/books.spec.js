@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { authenticate, fetchBooks, fetchBookById, logout } from '../../../src/api/books.js'
+import { authenticate, updateLocale, fetchBooks, fetchBookById, logout } from '../../../src/api/books.js'
 import books from '../../../src/mocks/books.json'
 
 describe('Books API', () => {
@@ -9,6 +9,18 @@ describe('Books API', () => {
     expect(result.success).toBe(true)
     expect(result.user.username).toBe('reader')
     expect(result.token).toBeTruthy()
+  })
+
+  it('returns rememberMe in the authentication response', async () => {
+    const result = await authenticate({ username: 'reader', password: 'reader', rememberMe: true })
+
+    expect(result.rememberMe).toBe(true)
+  })
+
+  it('includes the user locale in the authentication response', async () => {
+    const result = await authenticate({ username: 'reader', password: 'reader' })
+
+    expect(result.user.locale).toBe('pt-BR')
   })
 
   it('rejects invalid credentials', async () => {
@@ -67,5 +79,12 @@ describe('Books API', () => {
     const result = await logout()
 
     expect(result.success).toBe(true)
+  })
+
+  it('updates locale in mock mode', async () => {
+    const result = await updateLocale('pt-BR')
+
+    expect(result.success).toBe(true)
+    expect(result.locale).toBe('pt-BR')
   })
 })

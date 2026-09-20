@@ -30,7 +30,32 @@ describe('LoginForm', () => {
 
     expect(wrapper.emitted('submit')).toHaveLength(1)
     expect(wrapper.emitted('submit')[0]).toEqual([
-      { username: 'reader', password: 'reader' }
+      { username: 'reader', password: 'reader', rememberMe: false }
+    ])
+  })
+
+  it('renders a remember-me checkbox', () => {
+    const wrapper = mountForm()
+    const checkbox = wrapper.find('input[type="checkbox"]')
+
+    expect(checkbox.exists()).toBe(true)
+    expect(wrapper.text()).toContain('Keep me logged in')
+  })
+
+  it('includes rememberMe value in submit event when checked', async () => {
+    const wrapper = mountForm()
+    const usernameInput = wrapper.find('input#username')
+    const passwordInput = wrapper.find('input#password')
+    const checkbox = wrapper.find('input[type="checkbox"]')
+
+    await usernameInput.setValue('reader')
+    await passwordInput.setValue('reader')
+    await checkbox.setValue(true)
+    await wrapper.find('form').trigger('submit')
+
+    expect(wrapper.emitted('submit')).toHaveLength(1)
+    expect(wrapper.emitted('submit')[0]).toEqual([
+      { username: 'reader', password: 'reader', rememberMe: true }
     ])
   })
 
@@ -54,6 +79,7 @@ describe('LoginForm', () => {
     const wrapper = mountForm({ isLoading: true })
     expect(wrapper.find('input#username').attributes('disabled')).toBeDefined()
     expect(wrapper.find('input#password').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('input[type="checkbox"]').attributes('disabled')).toBeDefined()
   })
 
   it('toggles password input type when visibility button is clicked', async () => {

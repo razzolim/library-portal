@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import LoginForm from '../components/LoginForm.vue'
 import LibraryIcon from '../components/icons/LibraryIcon.vue'
@@ -29,14 +29,12 @@ import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
-const route = useRoute()
 
 async function handleLogin(credentials) {
   const success = await auth.login(credentials)
 
   if (success) {
-    const redirect = route.query.redirect || '/library'
-    router.push(redirect)
+    router.push({ name: 'library' })
   }
 }
 </script>

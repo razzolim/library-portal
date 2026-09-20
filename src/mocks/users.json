@@ -4,6 +4,7 @@
     "username": "reader",
     "password": "reader",
     "fullName": "Demo Reader",
-    "role": "reader"
+    "role": "reader",
+    "locale": "pt-BR"
   }
 ]

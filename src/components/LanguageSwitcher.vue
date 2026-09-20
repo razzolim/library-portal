@@ -20,7 +20,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { availableLocales, setLocale, getCurrentLocale } from '../i18n'
+import { availableLocales, getCurrentLocale } from '../i18n'
 
 const props = defineProps({
   variant: {
@@ -30,10 +30,12 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['change'])
+
 const currentLocale = computed(() => getCurrentLocale())
 
 function handleChange(event) {
-  setLocale(event.target.value)
+  emit('change', event.target.value)
 }
 </script>
 

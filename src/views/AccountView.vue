@@ -24,7 +24,7 @@
       <section class="account-view__section">
         <h2 class="account-view__section-title">{{ $t('account.preferences') }}</h2>
         <div class="account-view__preference">
-          <LanguageSwitcher />
+          <LanguageSwitcher @change="updateLocale" />
         </div>
       </section>
 
@@ -38,10 +38,21 @@
 </template>
 
 <script setup>
+import { setLocale } from '../i18n'
+import { updateLocale as updateLocaleApi } from '../api/books.js'
 import { useAuthStore } from '../stores/auth'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
 const auth = useAuthStore()
+
+async function updateLocale(newLocale) {
+  await updateLocaleApi(newLocale)
+  setLocale(newLocale)
+
+  if (auth.user) {
+    auth.user.locale = newLocale
+  }
+}
 </script>
 
 <style scoped>

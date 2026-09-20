@@ -1,10 +1,20 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
 import { setActivePinia, createPinia } from 'pinia'
 import { createTestI18n } from '../test-utils.js'
 import AccountView from '../../../src/views/AccountView.vue'
 import { useAuthStore } from '../../../src/stores/auth.js'
+import { updateLocale } from '../../../src/api/books.js'
+import { getCurrentLocale } from '../../../src/i18n'
+
+vi.mock('../../../src/api/books.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    updateLocale: vi.fn().mockResolvedValue({ success: true, locale: 'pt-BR' })
+  }
+})
 
 function createRouterForAccount() {
   return createRouter({
@@ -42,6 +52,7 @@ async function mountAccountView(user = null) {
 describe('AccountView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    vi.clearAllMocks()
   })
 
   it('displays the account title', async () => {
@@ -68,6 +79,17 @@ describe('AccountView', () => {
   it('includes the language switcher', async () => {
     const { wrapper } = await mountAccountView({ id: 1, username: 'reader', fullName: 'Demo Reader', role: 'reader' })
     expect(wrapper.find('select').exists()).toBe(true)
+  })
+
+  it('persists locale change through the API', async () => {
+    const { wrapper } = await mountAccountView({ id: 1, username: 'reader', fullName: 'Demo Reader', role: 'reader', locale: 'en' })
+
+    const select = wrapper.find('select')
+    await select.setValue('pt-BR')
+    await flushPromises()
+
+    expect(updateLocale).toHaveBeenCalledWith('pt-BR')
+    expect(getCurrentLocale()).toBe('pt-BR')
   })
 
   it('navigates back to the library when the link is clicked', async () => {
