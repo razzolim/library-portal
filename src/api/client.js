@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+const STORAGE_KEY = 'library_portal_auth'
+
 /**
  * Centralized HTTP client.
  *
@@ -24,21 +26,8 @@ const client = axios.create({
   timeout: 10000
 })
 
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('library_portal_auth')
-  if (token) {
-    try {
-      const parsed = JSON.parse(token)
-      if (parsed.token) {
-        config.headers.Authorization = `Bearer ${parsed.token}`
-      }
-    } catch (e) {
-      // ignore invalid storage
-    }
-  }
-  return config
-})
-
+let isRefreshing = false
+let refreshSubscribers = []
 let authErrorHandler = null
 let isHandlingUnauthorized = false
 
@@ -68,9 +57,105 @@ export async function handleAuthError(error) {
   }
 }
 
+function getStoredAuth() {
+  const session = sessionStorage.getItem(STORAGE_KEY)
+  const persistent = localStorage.getItem(STORAGE_KEY)
+  const raw = session || persistent
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch (e) {
+    return null
+  }
+}
+
+function getStoredToken() {
+  return getStoredAuth()?.token || null
+}
+
+function setStoredToken(token) {
+  const session = sessionStorage.getItem(STORAGE_KEY)
+  const persistent = localStorage.getItem(STORAGE_KEY)
+
+  if (session) {
+    try {
+      const parsed = JSON.parse(session)
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, token }))
+    } catch (e) {
+      sessionStorage.removeItem(STORAGE_KEY)
+    }
+  }
+
+  if (persistent) {
+    try {
+      const parsed = JSON.parse(persistent)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, token }))
+    } catch (e) {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }
+}
+
+function onRefreshed(token) {
+  refreshSubscribers.forEach((callback) => callback(token))
+  refreshSubscribers = []
+}
+
+function subscribeTokenRefresh(callback) {
+  refreshSubscribers.push(callback)
+}
+
+async function refreshAccessToken() {
+  const { data } = await client.post('/auth/refresh')
+  return data.accessToken
+}
+
+client.interceptors.request.use((config) => {
+  const token = getStoredToken()
+  if (token && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 client.interceptors.response.use(
   (response) => response,
-  (error) => handleAuthError(error).then(() => Promise.reject(error))
+  async (error) => {
+    const originalRequest = error.config
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      originalRequest.url !== '/auth/refresh'
+    ) {
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+            resolve(client(originalRequest))
+          })
+        })
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        const newToken = await refreshAccessToken()
+        setStoredToken(newToken)
+        onRefreshed(newToken)
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
+        return client(originalRequest)
+      } catch (refreshError) {
+        await handleAuthError({ response: { status: 401 } })
+        return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
+      }
+    }
+
+    return Promise.reject(error)
+  }
 )
 
 export default client

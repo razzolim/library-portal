@@ -29,9 +29,12 @@ Authenticate a user and return a token.
 ```json
 {
   "username": "reader",
-  "password": "reader"
+  "password": "reader",
+  "rememberMe": true
 }
 ```
+
+`rememberMe` indicates whether the session should persist across browser restarts. The frontend uses this value to decide between `localStorage` (persistent) and `sessionStorage` (session-only) token storage when tokens are returned in the response body.
 
 **Success response (200)**
 
@@ -42,11 +45,15 @@ Authenticate a user and return a token.
     "id": 1,
     "username": "reader",
     "fullName": "Demo Reader",
-    "role": "reader"
+    "role": "reader",
+    "locale": "en"
   },
-  "token": "jwt-or-session-token"
+  "token": "jwt-or-session-token",
+  "rememberMe": true
 }
 ```
+
+`user.locale` is the user's preferred language (`en` or `pt-BR`). The frontend applies it after a successful login.
 
 **Failure response (200 with `success: false`, or 401)**
 
@@ -70,6 +77,41 @@ The frontend sends the token in the `Authorization` header.
 ```json
 {
   "success": true
+}
+```
+
+### `POST /auth/refresh`
+
+Refresh the access token when a request returns 401.
+
+**Response (200)**
+
+```json
+{
+  "accessToken": "new-jwt-or-session-token"
+}
+```
+
+The frontend retries the original request with the new token. If refresh fails, the frontend clears the session and redirects to `/login`.
+
+### `PATCH /me`
+
+Update the authenticated user's profile. Currently used to persist the preferred language.
+
+**Request body**
+
+```json
+{
+  "locale": "pt-BR"
+}
+```
+
+**Response (200)**
+
+```json
+{
+  "success": true,
+  "locale": "pt-BR"
 }
 ```
 

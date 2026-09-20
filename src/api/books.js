@@ -20,7 +20,7 @@ function sleep(ms) {
  * When VITE_USE_MOCK_API is true, only the credentials defined in users.json will succeed.
  * When it is false, the request is forwarded to the real backend at POST /auth/login.
  */
-export async function authenticate({ username, password }) {
+export async function authenticate({ username, password, rememberMe }) {
   if (USE_MOCK_API) {
     await sleep(MOCK_DELAY_MS)
 
@@ -38,14 +38,16 @@ export async function authenticate({ username, password }) {
         id: user.id,
         username: user.username,
         fullName: user.fullName,
-        role: user.role
+        role: user.role,
+        locale: user.locale
       },
-      token: `mock-token-${user.id}-${Date.now()}`
+      token: `mock-token-${user.id}-${Date.now()}`,
+      rememberMe
     }
   }
 
   try {
-    const { data } = await client.post('/auth/login', { username, password })
+    const { data } = await client.post('/auth/login', { username, password, rememberMe })
     return data
   } catch (err) {
     if (err.response?.status === 401 || err.response?.status === 403) {
@@ -53,6 +55,20 @@ export async function authenticate({ username, password }) {
     }
     throw err
   }
+}
+
+/**
+ * Update the authenticated user's preferred locale.
+ * PATCH /me is used in real-backend mode; mock mode resolves immediately.
+ */
+export async function updateLocale(locale) {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    return { success: true, locale }
+  }
+
+  const { data } = await client.patch('/me', { locale })
+  return data
 }
 
 /**

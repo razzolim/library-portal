@@ -46,6 +46,18 @@
       </div>
     </div>
 
+    <div class="login-form__field login-form__field--checkbox">
+      <label class="login-form__checkbox-label">
+        <input
+          v-model="rememberMe"
+          type="checkbox"
+          class="login-form__checkbox"
+          :disabled="props.isLoading"
+        />
+        {{ $t('login.rememberMe') }}
+      </label>
+    </div>
+
     <button
       class="login-form__submit"
       type="submit"
@@ -72,6 +84,7 @@ const emit = defineEmits(['submit'])
 const username = ref('')
 const password = ref('')
 const showPassword = ref(false)
+const rememberMe = ref(false)
 
 const passwordFieldType = computed(() => (showPassword.value ? 'text' : 'password'))
 const isValid = computed(() => username.value.trim() && password.value.trim())
@@ -82,7 +95,11 @@ function togglePasswordVisibility() {
 
 function handleSubmit() {
   if (!isValid.value) return
-  emit('submit', { username: username.value.trim(), password: password.value })
+  emit('submit', {
+    username: username.value.trim(),
+    password: password.value,
+    rememberMe: rememberMe.value
+  })
 }
 </script>
 
@@ -168,6 +185,32 @@ function handleSubmit() {
 .login-form__toggle-icon {
   width: 1.25rem;
   height: 1.25rem;
+}
+
+.login-form__field--checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-form__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.login-form__checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.login-form__checkbox:disabled {
+  cursor: not-allowed;
 }
 
 .login-form__submit {

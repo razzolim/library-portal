@@ -1,9 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authenticate, logout as logoutApi } from '../api/books.js'
-import { i18n } from '../i18n'
+import { i18n, setLocale } from '../i18n'
 
 const STORAGE_KEY = 'library_portal_auth'
+
+function loadStoredSession() {
+  const session = sessionStorage.getItem(STORAGE_KEY)
+  const persistent = localStorage.getItem(STORAGE_KEY)
+  return session || persistent
+}
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -12,8 +18,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref(false)
   const error = ref(null)
 
-  // Initialize from localStorage on load
-  const stored = localStorage.getItem(STORAGE_KEY)
+  // Initialize from storage on load (session first, then persistent)
+  const stored = loadStoredSession()
   if (stored) {
     try {
       const parsed = JSON.parse(stored)
@@ -21,6 +27,7 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = parsed.token || null
     } catch (e) {
       localStorage.removeItem(STORAGE_KEY)
+      sessionStorage.removeItem(STORAGE_KEY)
     }
   }
 
@@ -45,7 +52,14 @@ export const useAuthStore = defineStore('auth', () => {
 
       user.value = result.user
       token.value = result.token
-      persist()
+      persist(credentials.rememberMe)
+
+      // Apply server-side locale preference
+      const userLocale = result.user?.locale
+      if (userLocale && ['en', 'pt-BR'].includes(userLocale)) {
+        setLocale(userLocale)
+      }
+
       return true
     } catch (err) {
       error.value = i18n.global.t('login.unexpectedError')
@@ -65,13 +79,18 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     token.value = null
     localStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem(STORAGE_KEY)
   }
 
-  function persist() {
-    localStorage.setItem(
+  function persist(rememberMe = false) {
+    const storage = rememberMe ? localStorage : sessionStorage
+    const other = rememberMe ? sessionStorage : localStorage
+
+    storage.setItem(
       STORAGE_KEY,
       JSON.stringify({ user: user.value, token: token.value })
     )
+    other.removeItem(STORAGE_KEY) // avoid stale tokens in the other storage
   }
 
   return {

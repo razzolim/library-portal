@@ -27,4 +27,14 @@ describe('LanguageSwitcher', () => {
     // Reset to English to avoid side effects
     setLocale('en')
   })
+
+  it('emits a change event with the new locale', async () => {
+    const wrapper = mountWithI18n(LanguageSwitcher)
+    const select = wrapper.find('select')
+
+    await select.setValue('pt-BR')
+
+    expect(wrapper.emitted('change')).toHaveLength(1)
+    expect(wrapper.emitted('change')[0]).toEqual(['pt-BR'])
+  })
 })

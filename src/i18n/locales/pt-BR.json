@@ -40,6 +40,7 @@
     "signingIn": "Entrando...",
     "showPassword": "Mostrar senha",
     "hidePassword": "Ocultar senha",
+    "rememberMe": "Manter-me conectado",
     "demoCredentials": "Credenciais de demonstração:",
     "invalidCredentials": "Usuário ou senha inválidos.",
     "unexpectedError": "Ocorreu um erro inesperado. Tente novamente."
