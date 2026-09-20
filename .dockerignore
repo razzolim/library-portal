@@ -1,0 +1,29 @@
+# Dependencies — reinstalled inside the container by npm ci
+node_modules/
+
+# Build output — produced inside the container, not copied in
+dist/
+
+# Git history and metadata
+.git/
+.gitignore
+.gitattributes
+
+# Local environment files — VITE_ vars are passed as build args in Railway,
+# never baked into the image from local .env files.
+.env
+.env.local
+.env.*.local
+
+# Test infrastructure — not needed in the image
+tests/
+vitest.config.*
+
+# Editor and OS artifacts
+.DS_Store
+*.swp
+*.swo
+Thumbs.db
+
+# Documentation
+*.md
