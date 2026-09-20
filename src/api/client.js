@@ -39,4 +39,38 @@ client.interceptors.request.use((config) => {
   return config
 })
 
+let authErrorHandler = null
+let isHandlingUnauthorized = false
+
+/**
+ * Registers a callback that will be invoked whenever a 401 Unauthorized
+ * response is received. The callback is responsible for clearing the session
+ * and redirecting the user to the login page.
+ */
+export function setupAuthErrorHandler(handler) {
+  authErrorHandler = handler
+}
+
+/**
+ * Internal helper used by the response interceptor and tests.
+ * Triggers the registered handler only for 401 responses and guards
+ * against recursive calls while a redirect is in progress.
+ */
+export async function handleAuthError(error) {
+  if (error.response?.status !== 401) return
+  if (!authErrorHandler || isHandlingUnauthorized) return
+
+  isHandlingUnauthorized = true
+  try {
+    await authErrorHandler(error)
+  } finally {
+    isHandlingUnauthorized = false
+  }
+}
+
+client.interceptors.response.use(
+  (response) => response,
+  (error) => handleAuthError(error).then(() => Promise.reject(error))
+)
+
 export default client

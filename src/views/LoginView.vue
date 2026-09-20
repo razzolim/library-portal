@@ -12,6 +12,10 @@
       </div>
 
       <LoginForm :is-loading="auth.isLoading" @submit="handleLogin" />
+
+      <div class="login-view__language">
+        <LanguageSwitcher />
+      </div>
     </div>
   </div>
 </template>
@@ -21,6 +25,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import LoginForm from '../components/LoginForm.vue'
 import LibraryIcon from '../components/icons/LibraryIcon.vue'
+import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -51,12 +56,23 @@ async function handleLogin(credentials) {
 }
 
 .login-view__card {
+  position: relative;
   width: 100%;
   max-width: 420px;
   padding: 2.5rem;
   background-color: var(--color-white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
+}
+
+.login-view__language {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .login-view__header {

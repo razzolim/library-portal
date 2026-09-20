@@ -46,9 +46,9 @@ describe('AppHeader', () => {
     localStorage.clear()
   })
 
-  it('renders the welcome message with the user name', () => {
+  it('renders the welcome message with the user full name', () => {
     const { wrapper } = mountHeader({ user: { id: 1, username: 'reader', fullName: 'Demo Reader', role: 'reader' } })
-    expect(wrapper.text()).toContain('Welcome, reader')
+    expect(wrapper.text()).toContain('Welcome, Demo Reader')
   })
 
   it('navigates to the library when the brand is clicked', async () => {

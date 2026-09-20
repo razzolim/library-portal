@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '../../../src/stores/auth.js'
 import { setLocale } from '../../../src/i18n'
+import * as booksApi from '../../../src/api/books.js'
 
 const STORAGE_KEY = 'library_portal_auth'
 
@@ -24,7 +25,7 @@ describe('Auth Store', () => {
 
     expect(result).toBe(true)
     expect(auth.isAuthenticated).toBe(true)
-    expect(auth.username).toBe('reader')
+    expect(auth.username).toBe('Demo Reader')
     expect(auth.user.fullName).toBe('Demo Reader')
     expect(auth.error).toBeNull()
   })
@@ -58,7 +59,7 @@ describe('Auth Store', () => {
 
     const auth = useAuthStore()
     expect(auth.isAuthenticated).toBe(true)
-    expect(auth.username).toBe('reader')
+    expect(auth.username).toBe('Demo Reader')
   })
 
   it('clears state on logout', async () => {
@@ -69,5 +70,19 @@ describe('Auth Store', () => {
     expect(auth.isAuthenticated).toBe(false)
     expect(auth.user).toBeNull()
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+  })
+
+  it('clears local state even when the backend logout call fails', async () => {
+    vi.spyOn(booksApi, 'logout').mockRejectedValue(new Error('Backend unavailable'))
+
+    const auth = useAuthStore()
+    await auth.login({ username: 'reader', password: 'reader' })
+    await auth.logout()
+
+    expect(auth.isAuthenticated).toBe(false)
+    expect(auth.user).toBeNull()
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+
+    vi.restoreAllMocks()
   })
 })

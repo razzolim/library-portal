@@ -38,6 +38,8 @@
     "passwordPlaceholder": "Enter your password",
     "signIn": "Sign in",
     "signingIn": "Signing in...",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "demoCredentials": "Demo credentials:",
     "invalidCredentials": "Invalid username or password.",
     "unexpectedError": "An unexpected error occurred. Please try again."
