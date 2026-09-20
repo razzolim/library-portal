@@ -25,12 +25,16 @@ library-portal/
 ├── index.html                  # HTML entry point
 ├── package.json                # Dependencies and scripts
 ├── vite.config.js              # Vite + Vitest configuration
+├── Dockerfile                  # Multi-stage production image (Node build -> nginx serve)
+├── nginx.conf                  # nginx SPA template used by the Docker image
+├── .github/workflows/ci.yml    # GitHub Actions CI workflow
 ├── .env / .env.example         # Environment templates (see below)
-├── .env.development            # Dev mode config
-├── .env.backend                # Real backend mode config
+├── .env.dev                    # Dev mode config
 ├── .env.mock                   # Mock mode config
-├── .env.production             # Production config
+├── .env.test                   # Test defaults
+├── .env.production             # Production build config (optional / added when shared)
 ├── README.md                   # Human-readable documentation
+├── BACKEND_API.md              # Backend API contract
 ├── AGENTS.md                   # This file
 └── src/
     ├── main.js                 # App bootstrap
@@ -38,21 +42,41 @@ library-portal/
     ├── router/index.js         # Routes and auth guard
     ├── stores/auth.js          # Pinia auth store
     ├── api/
-    │   ├── client.js           # Axios client with env-based baseURL
+    │   ├── client.js           # Axios client with env-based baseURL + 401 handler
     │   ├── books.js            # API functions for auth and books (mock or real)
     │   └── changelog.js        # API function for the change log (mock or real)
-    ├── i18n/                   # Translations and locale config
+    ├── i18n/
+    │   ├── index.js            # i18n setup, locale helpers, and availableLocales
+    │   └── locales/            # Translation JSON files (en, pt-BR)
     ├── mocks/                  # Static JSON mock data
     ├── views/                  # Page-level components
+    │   ├── LoginView.vue
+    │   ├── LibraryView.vue
+    │   ├── BookPdfView.vue
+    │   ├── AccountView.vue
+    │   └── ChangeLogView.vue
     ├── components/             # Reusable components
-    ├── utils/                  # Shared utilities (drive URL, markdown rendering)
-    └── assets/styles.css       # Global CSS + CSS variables
+    │   ├── AppHeader.vue
+    │   ├── BookCard.vue
+    │   ├── BookDetailModal.vue
+    │   ├── BookPdfViewer.vue
+    │   ├── ChangeLog.vue
+    │   ├── LanguageSwitcher.vue
+    │   ├── LoadingSpinner.vue
+    │   ├── LoginForm.vue
+    │   ├── PaginationControls.vue
+    │   └── icons/
+    │       └── LibraryIcon.vue
+    ├── utils/                  # Shared utilities (drive URL, markdown rendering, changelog version)
+    └── assets/
+        ├── styles.css          # Global CSS + CSS variables
+        └── ...                 # Static assets
 ```
 
 ## Environment Configuration
 
 - Vite exposes only variables prefixed with `VITE_` to the browser.
-- All hosts and API endpoints are configured through `.env` files. **Do not hardcode URLs in source code.**
+- All hosts and API endpoints are configured through `.env` files. Do not hardcode URLs in source code.
 
 ### Required variables
 
@@ -70,10 +94,10 @@ library-portal/
 |---|---|---|
 | `.env` | All modes | No (gitignored) |
 | `.env.example` | All modes (template) | Yes |
-| `.env.development` | `npm run dev` / `npm run dev:env` | Yes |
-| `.env.backend` | `npm run dev:backend` | Yes |
+| `.env.dev` | `npm run dev` | Yes |
 | `.env.mock` | `npm run dev:mock` | Yes |
-| `.env.production` | `npm run build` / `npm run build:prod` | Yes |
+| `.env.test` | `npm test` (Vitest `--mode test`) | Yes |
+| `.env.production` | `npm run build:prod` | Optional; add if the project shares production defaults |
 | `.env.*.local` | Same as matching mode | No (gitignored) |
 
 ### Default backend target
@@ -88,12 +112,13 @@ baseURL: http://localhost:3000/api
 
 ### Scripts
 
-- `npm run dev` — dev server with `.env` + `.env.development`.
-- `npm run dev:env` — alias for `npm run dev`.
-- `npm run dev:backend` — dev server with `.env` + `.env.backend` (real backend).
-- `npm run dev:mock` — dev server with `.env` + `.env.mock` (mock data).
-- `npm run build` / `npm run build:prod` — production build.
-- `npm test` / `npm run test:watch` / `npm run test:ui` — tests.
+- `npm start` — start dev server with the default `.env` configuration.
+- `npm run dev` — dev server with `--mode dev` (loads `.env` + `.env.dev`, points to the shared dev backend).
+- `npm run dev:mock` — dev server with `--mode mock` (loads `.env` + `.env.mock`, uses in-memory data).
+- `npm run dev:localhost` — dev server with `--mode localhost` (loads `.env`, uses the local backend).
+- `npm run build` / `npm run build:prod` — production build (Vite loads `.env.production` if present).
+- `npm run preview` — preview the production build locally.
+- `npm test` / `npm run test:watch` / `npm run test:ui` — run the Vitest suite.
 
 ## Coding Conventions
 
@@ -110,9 +135,22 @@ baseURL: http://localhost:3000/api
 - All HTTP requests go through `src/api/client.js`.
 - API functions live in `src/api/books.js` (auth + books) and `src/api/changelog.js` (change log).
 - The backend contract is documented in `BACKEND_API.md`.
+- `src/api/client.js` reads the auth token from `localStorage` under the `library_portal_auth` key and attaches it as a `Bearer` header.
+- `src/api/client.js` exports `setupAuthErrorHandler()` and `handleAuthError()`. A registered handler is invoked on every 401 response, clears the session, and redirects to login. Do not remove this wiring in `src/main.js`.
 - When `VITE_USE_MOCK_API` is `true`, functions return in-memory mock data with a 500ms delay.
 - When `VITE_USE_MOCK_API` is `false`, functions call the real backend.
 - The default behavior is **mock** when the variable is missing, so tests and initial setup keep working.
+
+### Routes
+
+- `/` redirects to `/login`.
+- `/login` is public and renders `LoginView`.
+- `/library` requires auth and renders the book grid in `LibraryView`.
+- `/library/:id` requires auth and opens the book detail modal inside `LibraryView`.
+- `/library/:id/read` requires auth and opens `BookPdfView` in a dedicated tab/window.
+- `/account` requires auth and renders `AccountView`.
+- `/changelog` requires auth and renders `ChangeLogView`.
+- Any unknown route redirects to `/login`.
 
 ### Change log
 
@@ -120,6 +158,7 @@ baseURL: http://localhost:3000/api
 - The backend endpoint is `GET /changelog`.
 - Each entry must contain: `id`, `version`, `date`, `title`, and `description`.
 - The `description` field is Markdown. The frontend renders it using `marked` and sanitizes the result with `DOMPurify` via `src/utils/markdown.js`.
+- `src/utils/changelog.js` provides `getLatestChangelogVersion()` to display the current app version in the footer.
 
 ### PDF Viewer
 
@@ -138,18 +177,20 @@ baseURL: http://localhost:3000/api
 - The header component is `src/components/AppHeader.vue`.
 - The user profile is accessed via a profile icon that opens a dropdown with **My account** and **Logout**.
 - **My account** navigates to the `/account` route (`src/views/AccountView.vue`).
-- The language switcher is no longer in the header; it lives on the account page.
+- The language switcher is no longer in the header. It appears on the login page (`src/views/LoginView.vue`) and on the account page (`src/views/AccountView.vue`).
 
 ### i18n
 
 - Translation keys are in `src/i18n/locales/en.json` and `src/i18n/locales/pt-BR.json`.
 - Add new keys to both files when introducing UI text.
 - Do not hardcode user-facing strings in components.
+- `src/i18n/index.js` exports helpers: `setLocale()`, `getCurrentLocale()`, and `availableLocales`.
 
 ### Tests
 
 - Tests are in `tests/unit/`, mirroring the `src/` structure.
 - Use `mount` from `@vue/test-utils` with the i18n helper in `tests/unit/test-utils.js` for components.
+- `tests/setup.js` is loaded before each test run and resets the locale to English.
 - The test environment is `jsdom` and `globals` are enabled.
 - Tests should keep using the mock data by default; they do not need a running backend.
 - Utility tests should also live in `tests/unit/`, mirroring the `src/utils/` structure.
@@ -175,9 +216,15 @@ baseURL: http://localhost:3000/api
 3. Use the `client` from `src/api/client.js` for the real implementation.
 4. Add or update tests for the mock branch.
 
+## Deployment
+
+- `Dockerfile` builds the app with the `VITE_*` build args and serves it with nginx. Make sure all required `VITE_` variables are passed as build args; Vite bakes them into the bundle at compile time.
+- `nginx.conf` is processed as an nginx template so `${PORT}` can be supplied at container runtime. It also handles SPA fallback to `index.html` and aggressive caching for hashed static assets.
+- `.github/workflows/ci.yml` runs `npm ci` and `npm test` on pushes and pull requests to `main` and `develop` when `src/**` files change.
+
 ## Important Notes
 
 - `.env` is gitignored; committed environment templates should be named `.env.<mode>` or `.env.example`.
 - The backend is expected to be available at `http://localhost:3000/api` by default.
 - The demo credentials are `reader / reader` (defined in `src/mocks/users.json`).
-- The project currently has **no real backend**, so keep `VITE_USE_MOCK_API=true` until one is available.
+- The project currently has no real backend, so keep `VITE_USE_MOCK_API=true` until one is available.
