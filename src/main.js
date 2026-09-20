@@ -18,10 +18,7 @@ setupAuthErrorHandler(async () => {
   await auth.logout()
 
   if (router.currentRoute.value.name !== 'login') {
-    await router.replace({
-      name: 'login',
-      query: { redirect: router.currentRoute.value.fullPath }
-    })
+    await router.replace({ name: 'login' })
   }
 })
 
