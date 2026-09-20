@@ -43,6 +43,7 @@
     "rememberMe": "Keep me logged in",
     "demoCredentials": "Demo credentials:",
     "invalidCredentials": "Invalid username or password.",
+    "missingToken": "Sign-in succeeded but the server did not return an access token. Please try again or contact support.",
     "unexpectedError": "An unexpected error occurred. Please try again."
   },
   "library": {

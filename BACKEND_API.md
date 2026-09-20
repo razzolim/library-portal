@@ -55,6 +55,8 @@ Authenticate a user and return a token.
 
 `user.locale` is the user's preferred language (`en` or `pt-BR`). The frontend applies it after a successful login.
 
+`token` is **required** whenever `success` is `true` (`accessToken` is accepted as an alias). A success response without a token is treated as a failed login: the frontend shows an error and stays on `/login`, because the route guard has no token to authorize `/library` with.
+
 **Failure response (200 with `success: false`, or 401)**
 
 ```json

@@ -51,6 +51,44 @@ describe('Auth Store', () => {
     expect(auth.error).toBe('Invalid username or password.')
   })
 
+  it('fails the login when the backend returns success without a token', async () => {
+    vi.spyOn(booksApi, 'authenticate').mockResolvedValue({
+      success: true,
+      user: { id: 1, username: 'reader', fullName: 'Demo Reader', role: 'reader' }
+    })
+
+    const auth = useAuthStore()
+    const result = await auth.login({ username: 'reader', password: 'reader' })
+
+    expect(result).toBe(false)
+    expect(auth.isAuthenticated).toBe(false)
+    expect(auth.user).toBeNull()
+    expect(auth.error).toBe(
+      'Sign-in succeeded but the server did not return an access token. Please try again or contact support.'
+    )
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+    expect(sessionStorage.getItem(STORAGE_KEY)).toBeNull()
+
+    vi.restoreAllMocks()
+  })
+
+  it('accepts a token returned as accessToken', async () => {
+    vi.spyOn(booksApi, 'authenticate').mockResolvedValue({
+      success: true,
+      user: { id: 1, username: 'reader', fullName: 'Demo Reader', role: 'reader' },
+      accessToken: 'backend-access-token'
+    })
+
+    const auth = useAuthStore()
+    const result = await auth.login({ username: 'reader', password: 'reader' })
+
+    expect(result).toBe(true)
+    expect(auth.isAuthenticated).toBe(true)
+    expect(auth.token).toBe('backend-access-token')
+
+    vi.restoreAllMocks()
+  })
+
   it('persists login state to localStorage when rememberMe is true', async () => {
     const auth = useAuthStore()
     await auth.login({ username: 'reader', password: 'reader', rememberMe: true })
