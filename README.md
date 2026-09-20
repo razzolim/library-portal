@@ -45,7 +45,13 @@ library-portal/
 ├── index.html                 # HTML entry point
 ├── package.json               # Dependencies and scripts
 ├── vite.config.js             # Vite configuration (including Vitest settings)
+├── Dockerfile                 # Multi-stage production image (Node build → Nginx serve)
+├── nginx.conf                 # Nginx server block template (SPA routing, caching, gzip)
+├── .dockerignore              # Files excluded from the Docker build context
 ├── README.md                  # This file
+├── documents/
+│   └── release/
+│       └── v1.0.0.md          # Railway deployment runbook for v1.0.0
 └── src/
     ├── main.js                # App bootstrap
     ├── App.vue                # Root layout
@@ -338,6 +344,74 @@ If the backend host or port changes, update the environment variables instead of
 3. Restart the Vite dev server.
 
 The rest of the application (components, views, store, and router) will continue to work without modification.
+
+---
+
+## Docker
+
+The portal ships with a production-ready `Dockerfile` that uses a **multi-stage build**: Node.js compiles the app and Nginx serves the resulting static files. The final image contains only Nginx and the compiled assets — no Node.js, no source code, no `node_modules` — and is typically around 25 MB.
+
+### How the build works
+
+| Stage | Base image | What it does |
+|---|---|---|
+| `builder` | `node:20-alpine` | Installs dependencies (`npm ci`) and runs `npm run build` |
+| final | `nginx:1.27-alpine` | Copies `dist/` from the builder and serves it |
+
+### Environment variables at build time
+
+Vite **bakes** all `VITE_*` variables into the compiled bundle. They must be provided when the image is built, not when the container starts. Each variable is declared as a Docker `ARG` in the `Dockerfile` so Railway (or any CI system) can inject them via `--build-arg` or its dashboard.
+
+| Variable | Required for build | Description |
+|---|---|---|
+| `VITE_API_BASE_URL` | Yes | Full API base URL baked into the bundle. |
+| `VITE_USE_MOCK_API` | Yes | `true` uses in-memory mock data; `false` calls the real backend. |
+| `VITE_API_HOST` | No | Fallback host when `VITE_API_BASE_URL` is not set. |
+| `VITE_API_PORT` | No | Fallback port when `VITE_API_BASE_URL` is not set. |
+| `VITE_ENVIRONMENT` | No | Environment label used in logs/debugging. |
+
+### Runtime variables
+
+`PORT` is injected by the host (Railway, Docker, etc.) at container start. Nginx reads it from the `nginx.conf` template via `envsubst` before the server starts. There is no need to set it manually in most environments.
+
+### Build and run locally
+
+```bash
+# Build the image (example with mock API enabled)
+docker build \
+  --build-arg VITE_USE_MOCK_API=true \
+  --build-arg VITE_ENVIRONMENT=local \
+  -t library-portal .
+
+# Run the container on port 8080
+docker run --rm -e PORT=8080 -p 8080:8080 library-portal
+```
+
+The portal will be available at **http://localhost:8080**.
+
+To build against the real backend:
+
+```bash
+docker build \
+  --build-arg VITE_API_BASE_URL=https://your-backend.example.com/api \
+  --build-arg VITE_USE_MOCK_API=false \
+  --build-arg VITE_ENVIRONMENT=production \
+  -t library-portal .
+```
+
+### Files added for containerization
+
+| File | Purpose |
+|---|---|
+| `Dockerfile` | Multi-stage build definition. |
+| `nginx.conf` | Nginx server block template. Handles SPA routing, cache headers, gzip, and security headers. |
+| `.dockerignore` | Excludes `node_modules/`, `dist/`, `.env` files, tests, and git history from the build context. |
+
+---
+
+## Deployment on Railway
+
+See [`documents/release/v1.0.0.md`](./documents/release/v1.0.0.md) for the complete step-by-step procedure to deploy a production image to Railway, including environment variable configuration, health checks, and rollback instructions.
 
 ---
 
