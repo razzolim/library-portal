@@ -55,4 +55,24 @@ describe('LoginForm', () => {
     expect(wrapper.find('input#username').attributes('disabled')).toBeDefined()
     expect(wrapper.find('input#password').attributes('disabled')).toBeDefined()
   })
+
+  it('toggles password input type when visibility button is clicked', async () => {
+    const wrapper = mountForm()
+    const passwordInput = wrapper.find('input#password')
+
+    expect(passwordInput.attributes('type')).toBe('password')
+
+    await wrapper.find('.login-form__toggle-password').trigger('click')
+
+    expect(wrapper.find('input#password').attributes('type')).toBe('text')
+
+    await wrapper.find('.login-form__toggle-password').trigger('click')
+
+    expect(wrapper.find('input#password').attributes('type')).toBe('password')
+  })
+
+  it('disables password visibility toggle while loading', () => {
+    const wrapper = mountForm({ isLoading: true })
+    expect(wrapper.find('.login-form__toggle-password').attributes('disabled')).toBeDefined()
+  })
 })

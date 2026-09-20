@@ -26,7 +26,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Getters
   const isAuthenticated = computed(() => !!token.value)
-  const username = computed(() => user.value?.username || '')
+  const username = computed(() => user.value?.fullName || user.value?.username || '')
 
   // Actions
   async function login(credentials) {
@@ -56,7 +56,12 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
-    await logoutApi()
+    try {
+      await logoutApi()
+    } catch (err) {
+      // If the backend is unreachable or the session is already invalid,
+      // we still must clear the local session.
+    }
     user.value = null
     token.value = null
     localStorage.removeItem(STORAGE_KEY)

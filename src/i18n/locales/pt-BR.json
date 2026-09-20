@@ -38,6 +38,8 @@
     "passwordPlaceholder": "Digite sua senha",
     "signIn": "Entrar",
     "signingIn": "Entrando...",
+    "showPassword": "Mostrar senha",
+    "hidePassword": "Ocultar senha",
     "demoCredentials": "Credenciais de demonstração:",
     "invalidCredentials": "Usuário ou senha inválidos.",
     "unexpectedError": "Ocorreu um erro inesperado. Tente novamente."

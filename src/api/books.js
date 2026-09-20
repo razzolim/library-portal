@@ -44,8 +44,15 @@ export async function authenticate({ username, password }) {
     }
   }
 
-  const { data } = await client.post('/auth/login', { username, password })
-  return data
+  try {
+    const { data } = await client.post('/auth/login', { username, password })
+    return data
+  } catch (err) {
+    if (err.response?.status === 401 || err.response?.status === 403) {
+      return { success: false, errorKey: 'login.invalidCredentials' }
+    }
+    throw err
+  }
 }
 
 /**
