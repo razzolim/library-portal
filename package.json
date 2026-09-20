@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "vite --host --port 5173",
-    "dev": "vite",
+    "dev": "vite --mode dev",
     "dev:mock": "vite --mode mock",
     "dev:localhost": "vite --mode localhost",
     "build": "vite build",
