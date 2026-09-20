@@ -50,8 +50,18 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
+      // A backend may answer `success: true` yet omit the token. Without it the
+      // route guard would bounce the user straight back to /login with no
+      // explanation, so treat it as a failed login instead.
+      const issuedToken = result.token || result.accessToken
+
+      if (!issuedToken) {
+        error.value = i18n.global.t('login.missingToken')
+        return false
+      }
+
       user.value = result.user
-      token.value = result.token
+      token.value = issuedToken
       persist(credentials.rememberMe)
 
       // Apply server-side locale preference

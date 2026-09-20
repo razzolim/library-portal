@@ -43,6 +43,7 @@
     "rememberMe": "Manter-me conectado",
     "demoCredentials": "Credenciais de demonstração:",
     "invalidCredentials": "Usuário ou senha inválidos.",
+    "missingToken": "O login foi aceito, mas o servidor não retornou um token de acesso. Tente novamente ou contate o suporte.",
     "unexpectedError": "Ocorreu um erro inesperado. Tente novamente."
   },
   "library": {
