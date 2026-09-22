@@ -65,6 +65,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '../stores/auth.js'
 import { fetchBookById } from '../api/books.js'
 import { getDrivePreviewUrl } from '../utils/drive.js'
 import LoadingSpinner from './LoadingSpinner.vue'
@@ -80,6 +81,7 @@ const emit = defineEmits(['close'])
 
 const { t } = useI18n()
 const router = useRouter()
+const auth = useAuthStore()
 
 const book = ref(null)
 const isLoading = ref(false)
@@ -132,6 +134,8 @@ function openPdfInNewTab() {
   if (!bookId.value || !previewUrl.value) {
     return
   }
+
+  auth.prepareNewTabAuth()
 
   const routeUrl = router.resolve({
     name: 'book-read',

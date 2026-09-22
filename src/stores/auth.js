@@ -4,8 +4,16 @@ import { authenticate, logout as logoutApi } from '../api/books.js'
 import { i18n, setLocale } from '../i18n'
 
 const STORAGE_KEY = 'library_portal_auth'
+const TRANSFER_KEY = 'library_portal_auth_transfer'
 
 function loadStoredSession() {
+  const transfer = localStorage.getItem(TRANSFER_KEY)
+  if (transfer) {
+    localStorage.removeItem(TRANSFER_KEY)
+    sessionStorage.setItem(STORAGE_KEY, transfer)
+    return transfer
+  }
+
   const session = sessionStorage.getItem(STORAGE_KEY)
   const persistent = localStorage.getItem(STORAGE_KEY)
   return session || persistent
@@ -28,6 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (e) {
       localStorage.removeItem(STORAGE_KEY)
       sessionStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(TRANSFER_KEY)
     }
   }
 
@@ -103,6 +112,13 @@ export const useAuthStore = defineStore('auth', () => {
     other.removeItem(STORAGE_KEY) // avoid stale tokens in the other storage
   }
 
+  function prepareNewTabAuth() {
+    const session = sessionStorage.getItem(STORAGE_KEY)
+    if (session && !localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(TRANSFER_KEY, session)
+    }
+  }
+
   return {
     user,
     token,
@@ -111,6 +127,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     username,
     login,
-    logout
+    logout,
+    prepareNewTabAuth
   }
 })

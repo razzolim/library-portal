@@ -5,6 +5,7 @@ import { setLocale, getCurrentLocale } from '../../../src/i18n'
 import * as booksApi from '../../../src/api/books.js'
 
 const STORAGE_KEY = 'library_portal_auth'
+const TRANSFER_KEY = 'library_portal_auth_transfer'
 
 describe('Auth Store', () => {
   beforeEach(() => {
@@ -135,6 +136,42 @@ describe('Auth Store', () => {
     const auth = useAuthStore()
     expect(auth.isAuthenticated).toBe(true)
     expect(auth.username).toBe('Demo Reader')
+  })
+
+  it('loads session from transfer key and moves it to sessionStorage', () => {
+    localStorage.setItem(
+      TRANSFER_KEY,
+      JSON.stringify({
+        user: { id: 1, username: 'reader', fullName: 'Demo Reader', role: 'reader' },
+        token: 'mock-token'
+      })
+    )
+
+    const auth = useAuthStore()
+    expect(auth.isAuthenticated).toBe(true)
+    expect(auth.username).toBe('Demo Reader')
+    expect(localStorage.getItem(TRANSFER_KEY)).toBeNull()
+    expect(sessionStorage.getItem(STORAGE_KEY)).not.toBeNull()
+  })
+
+  it('prepareNewTabAuth writes sessionStorage to transfer key when localStorage is empty', async () => {
+    const auth = useAuthStore()
+    await auth.login({ username: 'reader', password: 'reader', rememberMe: false })
+
+    expect(localStorage.getItem(TRANSFER_KEY)).toBeNull()
+
+    auth.prepareNewTabAuth()
+
+    expect(localStorage.getItem(TRANSFER_KEY)).toBe(sessionStorage.getItem(STORAGE_KEY))
+  })
+
+  it('prepareNewTabAuth does nothing when localStorage already has a session', async () => {
+    const auth = useAuthStore()
+    await auth.login({ username: 'reader', password: 'reader', rememberMe: true })
+
+    auth.prepareNewTabAuth()
+
+    expect(localStorage.getItem(TRANSFER_KEY)).toBeNull()
   })
 
   it('clears state on logout', async () => {
