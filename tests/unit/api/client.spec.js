@@ -132,4 +132,43 @@ describe('Client token storage and refresh', () => {
     await expect(client.get('/books')).rejects.toThrow('Refresh failed')
     expect(handler).toHaveBeenCalled()
   })
+
+  it('rejects all concurrent requests when refresh fails', async () => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ user: null, token: 'old-token' }))
+    const handler = vi.fn().mockResolvedValue()
+    setupAuthErrorHandler(handler)
+
+    adapterSpy
+      .mockRejectedValueOnce(create401Error({ url: '/books', method: 'get', headers: {} }))
+      .mockRejectedValueOnce(create401Error({ url: '/books', method: 'get', headers: {} }))
+      .mockRejectedValueOnce(new Error('Refresh failed'))
+
+    const p1 = client.get('/books').catch(() => 'rejected')
+    const p2 = client.get('/books').catch(() => 'rejected')
+
+    const results = await Promise.all([p1, p2])
+
+    expect(results).toEqual(['rejected', 'rejected'])
+    expect(handler).toHaveBeenCalled()
+  })
+
+  it('does not deadlock when the auth error handler makes another request', async () => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ user: null, token: 'old-token' }))
+    const handler = vi.fn().mockImplementation(async () => {
+      // Simulate auth.logout() calling an API endpoint from inside the handler
+      await client.get('/auth/logout')
+    })
+    setupAuthErrorHandler(handler)
+
+    adapterSpy
+      .mockRejectedValueOnce(create401Error({ url: '/books', method: 'get', headers: {} }))
+      .mockRejectedValueOnce(new Error('Refresh failed'))
+      .mockResolvedValueOnce({ data: { success: true }, status: 200, headers: {}, config: {} })
+
+    await expect(client.get('/books')).rejects.toThrow('Refresh failed')
+
+    expect(handler).toHaveBeenCalled()
+    expect(adapterSpy).toHaveBeenCalledTimes(3)
+    expect(adapterSpy.mock.calls[2][0].url).toBe('/auth/logout')
+  })
 })
