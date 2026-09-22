@@ -26,12 +26,19 @@ vi.mock('../../../src/api/books.js', () => ({
   fetchBookById: vi.fn()
 }))
 
+vi.mock('../../../src/stores/auth.js', () => ({
+  useAuthStore: vi.fn(() => ({
+    prepareNewTabAuth: vi.fn()
+  }))
+}))
+
 vi.mock('vue-router', () => ({
   useRouter: () => mockRouter,
   useRoute: () => ({})
 }))
 
 import { fetchBookById } from '../../../src/api/books.js'
+import { useAuthStore } from '../../../src/stores/auth.js'
 
 function mountModal(props = {}) {
   return mountWithI18n(BookDetailModal, {
@@ -124,6 +131,8 @@ describe('BookDetailModal', () => {
   })
 
   it('opens the book reader in a new tab when the read online button is clicked', async () => {
+    const prepareMock = vi.fn()
+    useAuthStore.mockReturnValue({ prepareNewTabAuth: prepareMock })
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => {})
     fetchBookById.mockResolvedValue(book)
 
@@ -132,6 +141,7 @@ describe('BookDetailModal', () => {
 
     await wrapper.find('.book-detail-modal__read-button').trigger('click')
 
+    expect(prepareMock).toHaveBeenCalled()
     expect(mockResolve).toHaveBeenCalledWith({
       name: 'book-read',
       params: { id: 1 }
@@ -139,5 +149,6 @@ describe('BookDetailModal', () => {
     expect(openSpy).toHaveBeenCalledWith('/library/1/read', '_blank', 'noopener,noreferrer')
 
     openSpy.mockRestore()
+    useAuthStore.mockRestore()
   })
 })
