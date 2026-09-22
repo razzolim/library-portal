@@ -73,7 +73,8 @@
     "error": "Failed to load book details. Please try again later.",
     "isbn": "ISBN",
     "summary": "Summary",
-    "readOnline": "Read online"
+    "readOnline": "Read online",
+    "uploadedBy": "Added by {user} on {date}"
   },
   "pdfViewer": {
     "title": "Book reader",

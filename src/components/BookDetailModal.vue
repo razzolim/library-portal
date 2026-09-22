@@ -55,6 +55,10 @@
           >
             {{ $t('bookDetail.readOnline') }}
           </button>
+
+          <p v-if="uploadMeta" class="book-detail-modal__upload-meta">
+            {{ uploadMeta }}
+          </p>
         </div>
       </div>
     </div>
@@ -68,6 +72,8 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
 import { fetchBookById } from '../api/books.js'
 import { getDrivePreviewUrl } from '../utils/drive.js'
+import { formatDate } from '../utils/date.js'
+import { getCurrentLocale } from '../i18n/index.js'
 import LoadingSpinner from './LoadingSpinner.vue'
 
 const props = defineProps({
@@ -124,6 +130,14 @@ const statusClass = computed(() => {
   return book.value.status === 'available'
     ? 'book-detail-modal__status--available'
     : 'book-detail-modal__status--borrowed'
+})
+
+const uploadMeta = computed(() => {
+  if (!book.value?.uploadedBy || !book.value?.uploadedAt) {
+    return ''
+  }
+  const date = formatDate(book.value.uploadedAt, getCurrentLocale())
+  return t('bookDetail.uploadedBy', { user: book.value.uploadedBy, date })
 })
 
 function handleClose() {
@@ -367,6 +381,15 @@ onUnmounted(() => {
 .book-detail-modal__read-button:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.book-detail-modal__upload-meta {
+  margin: 1.5rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-align: center;
 }
 
 @media (max-width: 480px) {
