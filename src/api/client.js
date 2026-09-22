@@ -97,7 +97,12 @@ function setStoredToken(token) {
 }
 
 function onRefreshed(token) {
-  refreshSubscribers.forEach((callback) => callback(token))
+  refreshSubscribers.forEach((callback) => callback(token, null))
+  refreshSubscribers = []
+}
+
+function onRefreshFailed(error) {
+  refreshSubscribers.forEach((callback) => callback(null, error))
   refreshSubscribers = []
 }
 
@@ -129,8 +134,12 @@ client.interceptors.response.use(
       originalRequest.url !== '/auth/refresh'
     ) {
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          subscribeTokenRefresh((token) => {
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh((token, error) => {
+            if (error) {
+              reject(error)
+              return
+            }
             originalRequest.headers.Authorization = `Bearer ${token}`
             resolve(client(originalRequest))
           })
@@ -147,6 +156,8 @@ client.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newToken}`
         return client(originalRequest)
       } catch (refreshError) {
+        onRefreshFailed(refreshError)
+        isRefreshing = false
         await handleAuthError({ response: { status: 401 } })
         return Promise.reject(refreshError)
       } finally {
