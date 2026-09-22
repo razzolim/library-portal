@@ -161,4 +161,26 @@ describe('LibraryView', () => {
 
     expect(wrapper.find('.library-view__count').text()).toContain('1 book')
   })
+
+  it('toggles between grid and list view', async () => {
+    const { wrapper } = await mountLibraryView()
+    await flushPromises()
+
+    expect(wrapper.find('.library-view__grid').exists()).toBe(true)
+    expect(wrapper.findAll('.book-card').length).toBe(books.length)
+
+    const listBtn = wrapper.findAll('.library-view__view-btn').find((btn) => btn.attributes('title')?.includes('List'))
+    await listBtn.trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('.library-view__list').exists()).toBe(true)
+    expect(wrapper.findAll('.book-list-item').length).toBe(books.length)
+
+    const gridBtn = wrapper.findAll('.library-view__view-btn').find((btn) => btn.attributes('title')?.includes('Grid'))
+    await gridBtn.trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('.library-view__grid').exists()).toBe(true)
+    expect(wrapper.findAll('.book-card').length).toBe(books.length)
+  })
 })
