@@ -14,7 +14,9 @@ const book = {
   isbn: '978-0201616224',
   coverColor: '#4a5568',
   summary: 'A classic guide for software developers that emphasizes practical approaches.',
-  pdfUrl: 'https://drive.google.com/file/d/1cElC7xqVArPo9jZMWDksRHtIwCxSq-qi/view?usp=drive_link'
+  pdfUrl: 'https://drive.google.com/file/d/1cElC7xqVArPo9jZMWDksRHtIwCxSq-qi/view?usp=drive_link',
+  uploadedBy: 'lib-admin',
+  uploadedAt: '2026-09-22T10:00:00.000Z'
 }
 
 const mockResolve = vi.fn()
@@ -128,6 +130,28 @@ describe('BookDetailModal', () => {
     await flushPromises()
 
     expect(wrapper.find('.book-detail-modal__read-button').exists()).toBe(false)
+  })
+
+  it('renders upload metadata when uploadedBy and uploadedAt are present', async () => {
+    fetchBookById.mockResolvedValue(book)
+
+    const wrapper = mountModal()
+    await flushPromises()
+
+    const meta = wrapper.find('.book-detail-modal__upload-meta')
+    expect(meta.exists()).toBe(true)
+    expect(meta.text()).toContain('lib-admin')
+    expect(meta.text()).toContain('Sep')
+    expect(meta.text()).toContain('2026')
+  })
+
+  it('does not render upload metadata when fields are missing', async () => {
+    fetchBookById.mockResolvedValue({ ...book, uploadedBy: undefined, uploadedAt: undefined })
+
+    const wrapper = mountModal()
+    await flushPromises()
+
+    expect(wrapper.find('.book-detail-modal__upload-meta').exists()).toBe(false)
   })
 
   it('opens the book reader in a new tab when the read online button is clicked', async () => {
