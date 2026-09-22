@@ -113,3 +113,29 @@ export async function logout() {
   await client.post('/auth/logout')
   return { success: true }
 }
+
+/**
+ * Change password API.
+ * PATCH /users/me/password — verifies the current password then stores the new one.
+ * In mock mode, accepts any currentPassword and resolves immediately.
+ */
+export async function changePassword({ currentPassword, newPassword }) {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    const user = users.find((u) => u.password === currentPassword)
+    if (!user) {
+      return { success: false, errorKey: 'users.changePassword.wrongCurrentPassword' }
+    }
+    return { success: true }
+  }
+
+  try {
+    const { data } = await client.patch('/users/me/password', { currentPassword, newPassword })
+    return data
+  } catch (err) {
+    if (err.response?.data?.errorKey) {
+      return { success: false, errorKey: err.response.data.errorKey }
+    }
+    throw err
+  }
+}
