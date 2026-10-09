@@ -11,7 +11,8 @@
   },
   "profile": {
     "menuLabel": "Profile menu",
-    "myAccount": "My account"
+    "myAccount": "My account",
+    "admin": "Admin"
   },
   "account": {
     "title": "Account",
@@ -37,6 +38,93 @@
     "wrongCurrentPassword": "Current password is incorrect.",
     "changePasswordMissingFields": "Please fill in all password fields.",
     "changePasswordError": "Failed to update password. Please try again."
+  },
+  "admin": {
+    "badge": "Admin only",
+    "title": "Administration",
+    "subtitle": "Manage users and the book collection.",
+    "navLabel": "Admin tools",
+    "overview": "Overview",
+    "overviewDescription": "Choose a tool to get started.",
+    "optional": "(optional)",
+    "cancel": "Cancel",
+    "forbidden": "You do not have permission to perform this action.",
+    "groups": {
+      "users": "Users",
+      "books": "Books"
+    },
+    "tools": {
+      "resetPassword": {
+        "title": "Reset password",
+        "description": "Set a new password for another user's account."
+      },
+      "addBook": {
+        "title": "Add book",
+        "description": "Add a new book to the library collection."
+      }
+    },
+    "resetPassword": {
+      "username": "Username",
+      "usernamePlaceholder": "e.g. jdoe",
+      "usernameRequired": "Enter the username of the account to reset.",
+      "newPassword": "New password",
+      "newPasswordPlaceholder": "Enter a new password",
+      "confirmPassword": "Confirm new password",
+      "confirmPasswordPlaceholder": "Repeat the new password",
+      "passwordHint": "At least {min} characters.",
+      "generate": "Generate a strong password",
+      "passwordTooShort": "Password must be at least {min} characters.",
+      "passwordMismatch": "Passwords do not match.",
+      "submit": "Reset password",
+      "confirmTitle": "Reset the password for \"{username}\"?",
+      "confirmMessage": "The user will need the new password the next time they sign in.",
+      "confirm": "Yes, reset password",
+      "resetting": "Resetting...",
+      "success": "Password for \"{username}\" was reset.",
+      "successHint": "Share the new password with the user through a secure channel.",
+      "userNotFound": "No user found with this username.",
+      "error": "Failed to reset the password. Please try again."
+    },
+    "books": {
+      "fields": {
+        "title": "Title",
+        "author": "Author",
+        "genre": "Genre",
+        "year": "Publication year",
+        "isbn": "ISBN",
+        "status": "Status",
+        "pdfUrl": "PDF link",
+        "summary": "Summary",
+        "coverColor": "Cover color"
+      },
+      "placeholders": {
+        "title": "e.g. The Pragmatic Programmer",
+        "author": "e.g. Andrew Hunt & David Thomas",
+        "genre": "Pick or type a genre",
+        "summary": "A short description shown on the book detail page"
+      },
+      "hints": {
+        "genre": "Pick an existing genre or type a new one.",
+        "pdfUrl": "Google Drive share link or another embeddable URL used by \"Read online\".",
+        "summary": "{count} / {max} characters",
+        "coverColor": "Used as the book tile background."
+      },
+      "errors": {
+        "titleRequired": "Enter the book title.",
+        "authorRequired": "Enter the author's name.",
+        "invalidYear": "Enter a year between 0 and {max}.",
+        "invalidIsbn": "Enter a valid ISBN (10 or 13 digits, hyphens allowed).",
+        "invalidUrl": "Enter a valid URL starting with http:// or https://."
+      },
+      "submit": "Add book",
+      "saving": "Adding...",
+      "clear": "Clear form",
+      "success": "\"{title}\" was added to the library.",
+      "viewBook": "View book",
+      "duplicateIsbn": "A book with this ISBN already exists.",
+      "invalidFields": "Some fields are invalid. Please review the form.",
+      "error": "Failed to add the book. Please try again."
+    }
   },
   "changelog": {
     "title": "Change log",

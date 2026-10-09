@@ -17,6 +17,10 @@ This is the **MVP (Minimum Viable Product)** frontend. The backend API is not ye
 - **Internationalization (i18n)** with support for English (`en`) and Brazilian Portuguese (`pt-BR`). The language switcher lives on the **Account** page.
 - **Profile menu** in the header with a dropdown linking to **My account** and **Logout**.
 - **Account page** (`/account`) showing the current user's profile and language preference.
+- **Admin area** (`/admin`), visible only to users with the `admin` role through an **Admin** entry in the profile menu. It has a sidebar and overview cards, and currently offers:
+  - **Reset password**: set a new password for another user (username + new password, with confirmation and a strong-password generator).
+  - **Add book**: add a book to the collection with inline validation and genre suggestions.
+  New tools can be added through `src/views/admin/adminTools.js`.
 - **Change log** link in the footer that opens a dedicated page (`/changelog`) showing portal updates. Descriptions are Markdown and rendered as formatted HTML.
 - **Mock API layer** for authentication, book data, and the change log, so the real backend can be swapped in later.
 - **Automated tests** for the auth store, the login form, the language switcher, pagination, the mock API, the PDF viewer, and the new profile menu and change log.
@@ -50,6 +54,7 @@ library-portal/
 ├── .dockerignore              # Files excluded from the Docker build context
 ├── README.md                  # This file
 ├── documents/
+│   ├── backend-spec-admin.md # Backend specification for the admin area
 │   └── release/
 │       └── v1.0.0.md          # Railway deployment runbook for v1.0.0
 └── src/
@@ -61,7 +66,8 @@ library-portal/
     │   └── auth.js            # Pinia auth store (login, logout, persistence)
     ├── api/
     │   ├── client.js          # Axios HTTP client (ready for real API)
-    │   └── books.js           # Mock API functions for auth and books
+    │   ├── books.js           # Mock API functions for auth and books
+    │   └── admin.js           # Admin-only API functions (reset password, create book)
     ├── i18n/
     │   ├── index.js           # i18n configuration and locale detection
     │   └── locales/
@@ -76,7 +82,8 @@ library-portal/
     │   ├── LibraryView.vue    # Book listing page
     │   ├── BookPdfView.vue    # Full-screen PDF reader in a new tab
     │   ├── AccountView.vue    # User account and language settings
-    │   └── ChangeLogView.vue  # Change log page
+    │   ├── ChangeLogView.vue  # Change log page
+    │   └── admin/             # Admin area (admin role only): layout, overview, and tools
     ├── components/
     │   ├── AppHeader.vue      # Header with profile menu dropdown
     │   ├── LoginForm.vue      # Reusable login form
@@ -233,6 +240,7 @@ The portal uses Vite's built-in `.env` support. Environment variables that need 
 7. Click the **profile icon** in the header to open the user menu. Choose **My account** to view your profile and change the language, or choose **Logout** to return to the login page.
 8. The language switcher is now on the **Account** page.
 9. Click the **Change log** link in the footer to view all portal updates.
+10. Sign in as `admin / admin` to see the **Admin** entry in the profile menu. From the admin area you can reset another user's password or add a new book. In mock mode, added books appear in the library until the page is reloaded.
 
 ---
 
@@ -240,7 +248,7 @@ The portal uses Vite's built-in `.env` support. Environment variables that need 
 
 Because the backend is not yet implemented, the portal uses JSON mock files:
 
-- `src/mocks/users.json` — contains the demo user (`reader / reader`).
+- `src/mocks/users.json` — contains the demo users (`reader / reader` and the admin `admin / admin`).
 - `src/mocks/books.json` — contains 12 sample books. Each book has an optional `pdfUrl` field that can point to a Google Drive share link.
 
 The mock API functions in `src/api/books.js` return Promises with a small delay (`500ms`) to simulate network latency.
@@ -303,7 +311,7 @@ The API layer already supports real backend calls. To switch from mock data to t
 npm run dev:backend
 ```
 
-See [`BACKEND_API.md`](./BACKEND_API.md) for the complete API contract the backend must implement.
+See [`BACKEND_API.md`](./BACKEND_API.md) for the complete API contract the backend must implement, and [`documents/backend-spec-admin.md`](./documents/backend-spec-admin.md) for the admin endpoints in detail (authorization, validation, audit log).
 
 The expected backend endpoints are:
 
@@ -313,6 +321,8 @@ The expected backend endpoints are:
 | `logout` | `POST` | `/auth/logout` | `{ success: true }` (token is sent in the `Authorization` header). |
 | `fetchBooks` | `GET` | `/books` | Array of books. Each book may include `pdfUrl` (a backend URL or Google Drive link). |
 | `fetchBookById` | `GET` | `/books/:id` | Single book or `null` / `404`. |
+| `resetUserPassword` | `PATCH` | `/admin/users/:username/password` | `{ newPassword }` → `{ success, username }`. Admin only. |
+| `createBook` | `POST` | `/books` | Book fields → `{ success, book }` (`201`). Admin only. |
 | `fetchChangelog` | `GET` | `/changelog` | Array of change log entries. Each entry must include `id`, `version`, `date`, `title`, and `description` (Markdown). |
 
 ### PDF reader
@@ -491,6 +501,12 @@ npm run test:ui     # Run tests with the Vitest UI
   - Includes the language switcher.
   - Navigates back to the library.
 
+- **Admin area**
+  - `tests/unit/api/admin.spec.js`: mock reset-password and create-book behavior (unknown user, duplicate ISBN).
+  - `tests/unit/views/admin/*.spec.js`: layout/overview rendering, form validation, confirmation step, success and error states.
+  - `tests/unit/components/AppHeader.spec.js`: the Admin entry is shown only to admins.
+  - `tests/unit/router-auth-guard.spec.js`: non-admins are redirected away from `/admin`.
+
 - **Change log API** (`tests/unit/api/changelog.spec.js`)
   - Returns mock change log entries with the expected fields.
   - Returns a copy of the mock data.
@@ -513,6 +529,11 @@ Username: reader
 Password: reader
 ```
 
+```
+Username: admin     (admin role, sees the Admin area)
+Password: admin
+```
+
 Any other username/password combination will be rejected by the mock API.
 
 ---
@@ -522,7 +543,7 @@ Any other username/password combination will be rejected by the mock API.
 - Connect the real authentication and book endpoints.
 - Implement the backend PDF proxy so the frontend never receives the raw Google Drive URL.
 - Add a real backend endpoint for `GET /changelog` with Markdown descriptions.
-- Add user role-based permissions (e.g., admin can add/edit books).
+- Extend the admin area (edit/remove books, user management). See the suggested endpoints in `documents/backend-spec-admin.md`.
 - Add a CSS framework such as Tailwind CSS if preferred.
 - Add E2E tests with Cypress or Playwright.
 

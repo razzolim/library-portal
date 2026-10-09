@@ -5,6 +5,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { createTestI18n } from './test-utils.js'
 import LoginView from '../../src/views/LoginView.vue'
 import { useAuthStore } from '../../src/stores/auth.js'
+import appRouter from '../../src/router/index.js'
 
 describe('Router Auth Guard Integration', () => {
   beforeEach(() => {
@@ -95,3 +96,46 @@ describe('Router Auth Guard Integration', () => {
     expect(r.currentRoute.value.query.redirect).toBeUndefined()
   })
 })
+
+describe('Router admin guard', () => {
+  beforeEach(async () => {
+    setActivePinia(createPinia())
+    localStorage.clear()
+    sessionStorage.clear()
+    // The app router is a singleton; start every test from a neutral route so
+    // pushes are never treated as duplicate navigations.
+    await appRouter.push('/login')
+  })
+
+  function signInAs(role) {
+    const auth = useAuthStore()
+    auth.user = { id: 1, username: role, role }
+    auth.token = 'mock-token'
+  }
+
+  it('lets admins open the admin area and its tools', async () => {
+    signInAs('admin')
+
+    await appRouter.push('/admin')
+    expect(appRouter.currentRoute.value.name).toBe('admin')
+
+    await appRouter.push('/admin/users/reset-password')
+    expect(appRouter.currentRoute.value.name).toBe('admin-reset-password')
+
+    await appRouter.push('/admin/books/new')
+    expect(appRouter.currentRoute.value.name).toBe('admin-add-book')
+  })
+
+  it('redirects non-admin users from admin routes to the library', async () => {
+    signInAs('reader')
+
+    await appRouter.push('/admin/books/new')
+    expect(appRouter.currentRoute.value.name).toBe('library')
+  })
+
+  it('redirects unauthenticated users from admin routes to login', async () => {
+    await appRouter.push('/admin')
+    expect(appRouter.currentRoute.value.name).toBe('login')
+  })
+})
+

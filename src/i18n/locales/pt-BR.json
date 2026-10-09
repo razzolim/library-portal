@@ -11,7 +11,8 @@
   },
   "profile": {
     "menuLabel": "Menu de perfil",
-    "myAccount": "Minha conta"
+    "myAccount": "Minha conta",
+    "admin": "Administração"
   },
   "account": {
     "title": "Conta",
@@ -37,6 +38,93 @@
     "wrongCurrentPassword": "Senha atual incorreta.",
     "changePasswordMissingFields": "Preencha todos os campos de senha.",
     "changePasswordError": "Falha ao atualizar a senha. Tente novamente."
+  },
+  "admin": {
+    "badge": "Somente administradores",
+    "title": "Administração",
+    "subtitle": "Gerencie usuários e o acervo de livros.",
+    "navLabel": "Ferramentas de administração",
+    "overview": "Visão geral",
+    "overviewDescription": "Escolha uma ferramenta para começar.",
+    "optional": "(opcional)",
+    "cancel": "Cancelar",
+    "forbidden": "Você não tem permissão para realizar esta ação.",
+    "groups": {
+      "users": "Usuários",
+      "books": "Livros"
+    },
+    "tools": {
+      "resetPassword": {
+        "title": "Redefinir senha",
+        "description": "Defina uma nova senha para a conta de outro usuário."
+      },
+      "addBook": {
+        "title": "Adicionar livro",
+        "description": "Adicione um novo livro ao acervo da biblioteca."
+      }
+    },
+    "resetPassword": {
+      "username": "Usuário",
+      "usernamePlaceholder": "ex.: jsilva",
+      "usernameRequired": "Informe o usuário da conta a ser redefinida.",
+      "newPassword": "Nova senha",
+      "newPasswordPlaceholder": "Digite uma nova senha",
+      "confirmPassword": "Confirmar nova senha",
+      "confirmPasswordPlaceholder": "Repita a nova senha",
+      "passwordHint": "Pelo menos {min} caracteres.",
+      "generate": "Gerar uma senha forte",
+      "passwordTooShort": "A senha deve ter pelo menos {min} caracteres.",
+      "passwordMismatch": "As senhas não coincidem.",
+      "submit": "Redefinir senha",
+      "confirmTitle": "Redefinir a senha de \"{username}\"?",
+      "confirmMessage": "O usuário precisará da nova senha no próximo acesso.",
+      "confirm": "Sim, redefinir senha",
+      "resetting": "Redefinindo...",
+      "success": "A senha de \"{username}\" foi redefinida.",
+      "successHint": "Compartilhe a nova senha com o usuário por um canal seguro.",
+      "userNotFound": "Nenhum usuário encontrado com este nome.",
+      "error": "Falha ao redefinir a senha. Tente novamente."
+    },
+    "books": {
+      "fields": {
+        "title": "Título",
+        "author": "Autor",
+        "genre": "Gênero",
+        "year": "Ano de publicação",
+        "isbn": "ISBN",
+        "status": "Status",
+        "pdfUrl": "Link do PDF",
+        "summary": "Resumo",
+        "coverColor": "Cor da capa"
+      },
+      "placeholders": {
+        "title": "ex.: O Programador Pragmático",
+        "author": "ex.: Andrew Hunt & David Thomas",
+        "genre": "Escolha ou digite um gênero",
+        "summary": "Uma breve descrição exibida nos detalhes do livro"
+      },
+      "hints": {
+        "genre": "Escolha um gênero existente ou digite um novo.",
+        "pdfUrl": "Link de compartilhamento do Google Drive ou outra URL incorporável usada em \"Ler online\".",
+        "summary": "{count} / {max} caracteres",
+        "coverColor": "Usada como fundo do card do livro."
+      },
+      "errors": {
+        "titleRequired": "Informe o título do livro.",
+        "authorRequired": "Informe o nome do autor.",
+        "invalidYear": "Informe um ano entre 0 e {max}.",
+        "invalidIsbn": "Informe um ISBN válido (10 ou 13 dígitos, hífens permitidos).",
+        "invalidUrl": "Informe uma URL válida começando com http:// ou https://."
+      },
+      "submit": "Adicionar livro",
+      "saving": "Adicionando...",
+      "clear": "Limpar formulário",
+      "success": "\"{title}\" foi adicionado à biblioteca.",
+      "viewBook": "Ver livro",
+      "duplicateIsbn": "Já existe um livro com este ISBN.",
+      "invalidFields": "Alguns campos são inválidos. Revise o formulário.",
+      "error": "Falha ao adicionar o livro. Tente novamente."
+    }
   },
   "changelog": {
     "title": "Registro de alterações",

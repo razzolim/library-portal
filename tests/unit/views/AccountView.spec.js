@@ -100,4 +100,17 @@ describe('AccountView', () => {
 
     expect(router.currentRoute.value.name).toBe('library')
   })
+
+  it('hides the change password section for the reader user', async () => {
+    const { wrapper } = await mountAccountView({ id: 1, username: 'reader', fullName: 'Demo Reader', role: 'reader' })
+
+    expect(wrapper.text()).not.toContain('Change password')
+    expect(wrapper.text()).not.toContain('Security')
+  })
+
+  it('shows the change password section for other users', async () => {
+    const { wrapper } = await mountAccountView({ id: 2, username: 'admin', fullName: 'Demo Admin', role: 'admin' })
+
+    expect(wrapper.text()).toContain('Change password')
+  })
 })
