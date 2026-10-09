@@ -32,6 +32,17 @@ describe('Auth Store', () => {
     expect(auth.error).toBeNull()
   })
 
+  it('isAdmin is true only for users with the admin role', async () => {
+    const auth = useAuthStore()
+    expect(auth.isAdmin).toBe(false)
+
+    await auth.login({ username: 'reader', password: 'reader' })
+    expect(auth.isAdmin).toBe(false)
+
+    await auth.login({ username: 'admin', password: 'admin' })
+    expect(auth.isAdmin).toBe(true)
+  })
+
   it('applies the user locale after login', async () => {
     const auth = useAuthStore()
     await auth.login({ username: 'reader', password: 'reader' })

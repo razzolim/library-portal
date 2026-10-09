@@ -43,6 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Getters
   const isAuthenticated = computed(() => !!token.value)
   const username = computed(() => user.value?.fullName || user.value?.username || '')
+  const isAdmin = computed(() => user.value?.role === 'admin')
 
   // Actions
   async function login(credentials) {
@@ -126,6 +127,7 @@ export const useAuthStore = defineStore('auth', () => {
     error,
     isAuthenticated,
     username,
+    isAdmin,
     login,
     logout,
     prepareNewTabAuth

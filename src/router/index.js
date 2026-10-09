@@ -5,6 +5,10 @@ import LibraryView from '../views/LibraryView.vue'
 import BookPdfView from '../views/BookPdfView.vue'
 import AccountView from '../views/AccountView.vue'
 import ChangeLogView from '../views/ChangeLogView.vue'
+import AdminView from '../views/admin/AdminView.vue'
+import AdminHomeView from '../views/admin/AdminHomeView.vue'
+import AdminResetPasswordView from '../views/admin/AdminResetPasswordView.vue'
+import AdminAddBookView from '../views/admin/AdminAddBookView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,6 +54,28 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/admin',
+      component: AdminView,
+      meta: { requiresAuth: true, requiresAdmin: true },
+      children: [
+        {
+          path: '',
+          name: 'admin',
+          component: AdminHomeView
+        },
+        {
+          path: 'users/reset-password',
+          name: 'admin-reset-password',
+          component: AdminResetPasswordView
+        },
+        {
+          path: 'books/new',
+          name: 'admin-add-book',
+          component: AdminAddBookView
+        }
+      ]
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/login'
     }
@@ -62,6 +88,12 @@ router.beforeEach((to) => {
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     return { name: 'login' }
+  }
+
+  // `to.meta` merges the meta of every matched record, so child admin routes
+  // inherit `requiresAdmin` from `/admin`.
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    return { name: 'library' }
   }
 
   if (to.name === 'login' && isAuthenticated) {

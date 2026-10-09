@@ -21,7 +21,7 @@
         </dl>
       </section>
 
-      <section class="account-view__section">
+      <section v-if="canChangePassword" class="account-view__section">
         <h2 class="account-view__section-title">{{ $t('account.security') }}</h2>
 
         <div class="account-view__password-header" @click="passwordSectionOpen = !passwordSectionOpen">
@@ -185,7 +185,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { setLocale } from '../i18n'
 import { updateLocale as updateLocaleApi, changePassword } from '../api/books.js'
@@ -194,6 +194,12 @@ import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+
+// Shared demo account: it must not be able to change its own password.
+const PASSWORD_LOCKED_USERNAMES = ['reader']
+const canChangePassword = computed(
+  () => !PASSWORD_LOCKED_USERNAMES.includes(auth.user?.username)
+)
 
 async function updateLocale(newLocale) {
   await updateLocaleApi(newLocale)

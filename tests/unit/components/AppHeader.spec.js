@@ -15,7 +15,8 @@ function createRouterForHeader() {
       { path: '/', redirect: '/library' },
       { path: '/login', name: 'login', component: { template: '<div>Login</div>' } },
       { path: '/library', name: 'library', component: { template: '<div>Library</div>' } },
-      { path: '/account', name: 'account', component: { template: '<div>Account</div>' } }
+      { path: '/account', name: 'account', component: { template: '<div>Account</div>' } },
+      { path: '/admin', name: 'admin', component: { template: '<div>Admin</div>' } }
     ]
   })
 }
@@ -134,5 +135,28 @@ describe('AppHeader', () => {
 
     expect(removeEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function))
     expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function))
+  })
+
+  it('does not show the Admin option for non-admin users', async () => {
+    const { wrapper } = mountHeader({ user: { id: 1, username: 'reader', fullName: 'Demo Reader', role: 'reader' } })
+    await wrapper.find('.header__profile-button').trigger('click')
+
+    expect(wrapper.find('.header__profile-option--admin').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('Admin')
+  })
+
+  it('shows the Admin option for admin users and navigates to the admin area', async () => {
+    const { wrapper, router } = mountHeader({ user: { id: 2, username: 'admin', fullName: 'Demo Admin', role: 'admin' } })
+    await router.isReady()
+
+    await wrapper.find('.header__profile-button').trigger('click')
+    const adminOption = wrapper.find('.header__profile-option--admin')
+    expect(adminOption.exists()).toBe(true)
+
+    await adminOption.trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.name).toBe('admin')
+    expect(wrapper.find('.header__profile-dropdown').exists()).toBe(false)
   })
 })

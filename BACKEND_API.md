@@ -55,6 +55,8 @@ Authenticate a user and return a token.
 
 `user.locale` is the user's preferred language (`en` or `pt-BR`). The frontend applies it after a successful login.
 
+`user.role` is either `"reader"` or `"admin"`. The frontend shows the **Admin** menu entry and allows the `/admin` routes only when `role` is `"admin"`. This is a UX gate only: the backend **must** enforce the role on every admin endpoint (see [`documents/backend-spec-admin.md`](./documents/backend-spec-admin.md)).
+
 `token` is **required** whenever `success` is `true` (`accessToken` is accepted as an alias). A success response without a token is treated as a failed login: the frontend shows an error and stays on `/login`, because the route guard has no token to authorize `/library` with.
 
 **Failure response (200 with `success: false`, or 401)**
@@ -178,6 +180,9 @@ The frontend treats `null` or a 404 as a missing book.
 | `status` | string | yes | `"available"` or `"borrowed"`. |
 | `summary` | string | no | Book summary/description. |
 | `pdfUrl` | string | no | Embeddable URL for the PDF reader. |
+| `coverColor` | string | no | Hex color (e.g. `#4a5568`) used as the book tile background. |
+| `uploadedBy` | string | no | Username of the admin who added the book. Set by the backend. |
+| `uploadedAt` | string | no | ISO 8601 timestamp of when the book was added. Set by the backend. |
 
 ### `pdfUrl` contract
 
@@ -215,11 +220,23 @@ Return a list of portal updates. The list should be ordered with the newest entr
 | `title` | string | yes | Short update title. |
 | `description` | string | yes | **Markdown-formatted** description. The frontend renders it as sanitized HTML. |
 
+## Admin
+
+Endpoints used by the admin area (`/admin`). All of them require a valid Bearer token **and** a user whose `role` is `"admin"`; non-admins must receive `403` with `{ "success": false, "errorKey": "admin.forbidden" }` (never `401`).
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `PATCH` | `/admin/users/:username/password` | Reset another user's password. Body: `{ newPassword }`. |
+| `POST` | `/books` | Add a new book. Returns `201` with `{ success, book }`. |
+
+The full specification (request/response bodies, validation rules, error keys, security and audit requirements, suggested data model) lives in [`documents/backend-spec-admin.md`](./documents/backend-spec-admin.md).
+
 ## Errors
 
 - The frontend expects JSON responses for failed requests.
 - For authentication failures, the frontend redirects the user to `/login`.
-- For 401/403 responses, the frontend should redirect to `/login`.
+- For 401 responses, the frontend refreshes the token and, if that fails, redirects to `/login`.
+- For 403 responses on admin endpoints, the frontend shows a "no permission" message and keeps the user on the page.
 - For network or unexpected errors, the frontend displays a generic error message.
 
 ## Environment notes for the frontend

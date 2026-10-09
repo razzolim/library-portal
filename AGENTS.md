@@ -4,7 +4,7 @@ This document provides the context and conventions agents need when working with
 
 ## Project Overview
 
-This is a **minimal Vue 3 single-page frontend** for a library. It allows users to log in, browse a book collection, view their account profile, change the language, and read a change log of portal updates. The project is currently an MVP that works against in-memory mock data, but it is architected so that a real backend can be swapped in without changing the rest of the application.
+This is a **minimal Vue 3 single-page frontend** for a library. It allows users to log in, browse a book collection, view their account profile, change the language, and read a change log of portal updates. Users with the `admin` role also get an **Admin** area to reset other users' passwords and add books. The project is currently an MVP that works against in-memory mock data, but it is architected so that a real backend can be swapped in without changing the rest of the application.
 
 ## Tech Stack
 
@@ -35,6 +35,7 @@ library-portal/
 ├── .env.production             # Production build config (optional / added when shared)
 ├── README.md                   # Human-readable documentation
 ├── BACKEND_API.md              # Backend API contract
+├── documents/backend-spec-admin.md # Full backend spec for the admin area
 ├── AGENTS.md                   # This file
 └── src/
     ├── main.js                 # App bootstrap
@@ -44,6 +45,7 @@ library-portal/
     ├── api/
     │   ├── client.js           # Axios client with env-based baseURL + 401 handler
     │   ├── books.js            # API functions for auth and books (mock or real)
+    │   ├── admin.js            # Admin-only API functions (reset user password, create book)
     │   └── changelog.js        # API function for the change log (mock or real)
     ├── i18n/
     │   ├── index.js            # i18n setup, locale helpers, and availableLocales
@@ -54,7 +56,13 @@ library-portal/
     │   ├── LibraryView.vue
     │   ├── BookPdfView.vue
     │   ├── AccountView.vue
-    │   └── ChangeLogView.vue
+    │   ├── ChangeLogView.vue
+    │   └── admin/              # Admin area (admin role only)
+    │       ├── adminTools.js   # Registry of admin tools (drives sidebar + overview cards)
+    │       ├── AdminView.vue   # Layout: header, sidebar nav, panel + shared admin form styles
+    │       ├── AdminHomeView.vue
+    │       ├── AdminResetPasswordView.vue
+    │       └── AdminAddBookView.vue
     ├── components/             # Reusable components
     │   ├── AppHeader.vue
     │   ├── BookCard.vue
@@ -133,7 +141,7 @@ baseURL: http://localhost:3000/api
 ### API Layer
 
 - All HTTP requests go through `src/api/client.js`.
-- API functions live in `src/api/books.js` (auth + books) and `src/api/changelog.js` (change log).
+- API functions live in `src/api/books.js` (auth + books), `src/api/admin.js` (admin-only actions), and `src/api/changelog.js` (change log).
 - The backend contract is documented in `BACKEND_API.md`.
 - `src/api/client.js` reads the auth token from `localStorage` under the `library_portal_auth` key and attaches it as a `Bearer` header.
 - `src/api/client.js` exports `setupAuthErrorHandler()` and `handleAuthError()`. A registered handler is invoked on every 401 response, clears the session, and redirects to login. Do not remove this wiring in `src/main.js`.
@@ -150,7 +158,26 @@ baseURL: http://localhost:3000/api
 - `/library/:id/read` requires auth and opens `BookPdfView` in a dedicated tab/window.
 - `/account` requires auth and renders `AccountView`.
 - `/changelog` requires auth and renders `ChangeLogView`.
+- `/admin` requires auth **and** the `admin` role (`meta.requiresAdmin`). It renders the `AdminView` layout with child routes:
+  - `/admin` (`admin`) — overview cards for every tool.
+  - `/admin/users/reset-password` (`admin-reset-password`) — reset another user's password.
+  - `/admin/books/new` (`admin-add-book`) — add a book.
+  - Non-admins are redirected to `/library`. Child routes inherit `requiresAdmin` through the merged `to.meta`.
 - Any unknown route redirects to `/login`.
+
+### Admin area
+
+- `useAuthStore().isAdmin` is `true` when `user.role === 'admin'`. Use it for any admin-only UI.
+- The frontend role check is a UX gate only; the backend enforces the role (see `documents/backend-spec-admin.md`).
+- **Adding a new admin tool:**
+  1. Create the view in `src/views/admin/` and reuse the shared classes from `AdminView.vue` (`admin-tool__*`, `admin-form__*`).
+  2. Register it as a child of `/admin` in `src/router/index.js`.
+  3. Add an entry to `src/views/admin/adminTools.js` (`key`, `route`, `group`, `icon`). The sidebar and overview cards update automatically.
+  4. Add `admin.tools.<key>.title` / `.description` (and any group label under `admin.groups`) to both locale files.
+  5. Add the API function to `src/api/admin.js` with a mock branch, and document the endpoint in `BACKEND_API.md` and `documents/backend-spec-admin.md`.
+- Admin API failures return `{ success: false, errorKey }`. A `403` is mapped to `admin.forbidden`. Views map known keys to i18n messages and fall back to a generic error.
+- Destructive actions (e.g. password reset) use an inline two-step confirmation before calling the API.
+- In mock mode, `createBook()` appends to the in-memory book list (visible until reload), and `resetUserPassword()` only validates the username without changing the mock data.
 
 ### Change log
 
@@ -177,6 +204,7 @@ baseURL: http://localhost:3000/api
 - The header component is `src/components/AppHeader.vue`.
 - The user profile is accessed via a profile icon that opens a dropdown with **My account** and **Logout**.
 - **My account** navigates to the `/account` route (`src/views/AccountView.vue`).
+- For users with the `admin` role, the dropdown also shows **Admin**, which navigates to `/admin`.
 - The language switcher is no longer in the header. It appears on the login page (`src/views/LoginView.vue`) and on the account page (`src/views/AccountView.vue`).
 
 ### i18n
@@ -226,5 +254,5 @@ baseURL: http://localhost:3000/api
 
 - `.env` is gitignored; committed environment templates should be named `.env.<mode>` or `.env.example`.
 - The backend is expected to be available at `http://localhost:3000/api` by default.
-- The demo credentials are `reader / reader` (defined in `src/mocks/users.json`).
+- The demo credentials are `reader / reader` and `admin / admin` (admin role), defined in `src/mocks/users.json`.
 - The project currently has no real backend, so keep `VITE_USE_MOCK_API=true` until one is available.

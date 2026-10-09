@@ -23,6 +23,19 @@
               {{ $t('profile.myAccount') }}
             </RouterLink>
           </li>
+          <li v-if="auth.isAdmin" role="none">
+            <RouterLink
+              :to="{ name: 'admin' }"
+              class="header__profile-option header__profile-option--admin"
+              role="menuitem"
+              @click="closeMenu"
+            >
+              <svg class="header__profile-option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              {{ $t('profile.admin') }}
+            </RouterLink>
+          </li>
           <li role="none">
             <button class="header__profile-option header__profile-option--logout" role="menuitem" @click="handleLogout">
               {{ $t('app.logout') }}
@@ -198,6 +211,19 @@ onUnmounted(() => {
 
 .header__profile-option:hover {
   background-color: var(--color-background-soft);
+}
+
+.header__profile-option--admin {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header__profile-option-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--color-warning);
 }
 
 .header__profile-option--logout {
