@@ -203,6 +203,7 @@ onUnmounted(() => {
   width: 100%;
   max-width: 560px;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
   background-color: var(--color-white);
   border-radius: var(--radius-lg);
@@ -381,6 +382,20 @@ onUnmounted(() => {
 }
 
 @media (max-width: 480px) {
+  .book-detail-overlay {
+    padding: 0.5rem;
+  }
+
+  .book-detail-modal__close {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .book-detail-modal__loading,
+  .book-detail-modal__error {
+    padding: 2rem 1rem;
+  }
+
   .book-detail-modal__meta {
     grid-template-columns: 1fr;
   }

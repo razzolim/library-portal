@@ -43,8 +43,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 #app {
   min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
 }
 
 button,
@@ -115,4 +127,29 @@ a:hover {
 .change-log__description strong {
   font-weight: 600;
   color: var(--color-text);
+}
+
+/* Mobile: avoid iOS zoom-on-focus (needs >= 16px) and enlarge touch targets. */
+@media (max-width: 600px) {
+  input,
+  select,
+  textarea {
+    font-size: 1rem !important;
+  }
+
+  .admin-form__btn,
+  .admin-users__menu-item {
+    min-height: 2.75rem;
+  }
+
+  .library-view__view-btn {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+  }
+
+  .change-log__description pre,
+  .change-log__description table {
+    max-width: 100%;
+    overflow-x: auto;
+  }
 }

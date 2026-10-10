@@ -91,6 +91,7 @@ onBeforeUnmount(() => {
   width: 100%;
   max-width: 28rem;
   max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
   overflow-y: auto;
   background-color: var(--color-white);
   border-radius: var(--radius-lg);
@@ -140,5 +141,25 @@ onBeforeUnmount(() => {
 
 .admin-modal__body {
   padding: 1rem 1.5rem 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .admin-modal__overlay {
+    align-items: flex-end;
+    padding: 0.5rem;
+  }
+
+  .admin-modal__header {
+    padding: 1rem 1rem 0;
+  }
+
+  .admin-modal__body {
+    padding: 0.75rem 1rem 1rem;
+  }
+
+  .admin-modal__close {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
 }
 </style>
