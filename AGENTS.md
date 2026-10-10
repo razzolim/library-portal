@@ -35,7 +35,8 @@ library-portal/
 ├── .env.production             # Production build config (optional / added when shared)
 ├── README.md                   # Human-readable documentation
 ├── BACKEND_API.md              # Backend API contract
-├── documents/backend-spec-admin.md # Full backend spec for the admin area
+├── documents/backend-spec-admin.md # Backend spec: admin authorization, reset password, add book
+├── documents/backend-spec-admin-users.md # Backend spec: admin user list, edit email, disable, delete
 ├── AGENTS.md                   # This file
 └── src/
     ├── main.js                 # App bootstrap
@@ -61,6 +62,7 @@ library-portal/
     │       ├── adminTools.js   # Registry of admin tools (drives sidebar + overview cards)
     │       ├── AdminView.vue   # Layout: header, sidebar nav, panel + shared admin form styles
     │       ├── AdminHomeView.vue
+    │       ├── AdminUsersView.vue        # Paginated user list + per-user actions
     │       ├── AdminResetPasswordView.vue
     │       └── AdminAddBookView.vue
     ├── components/             # Reusable components
@@ -160,6 +162,7 @@ baseURL: http://localhost:3000/api
 - `/changelog` requires auth and renders `ChangeLogView`.
 - `/admin` requires auth **and** the `admin` role (`meta.requiresAdmin`). It renders the `AdminView` layout with child routes:
   - `/admin` (`admin`) — overview cards for every tool.
+  - `/admin/users` (`admin-users`) — paginated, searchable user list with actions: reset password, edit email, disable/enable, delete.
   - `/admin/users/reset-password` (`admin-reset-password`) — reset another user's password.
   - `/admin/books/new` (`admin-add-book`) — add a book.
   - Non-admins are redirected to `/library`. Child routes inherit `requiresAdmin` through the merged `to.meta`.
@@ -176,8 +179,10 @@ baseURL: http://localhost:3000/api
   4. Add `admin.tools.<key>.title` / `.description` (and any group label under `admin.groups`) to both locale files.
   5. Add the API function to `src/api/admin.js` with a mock branch, and document the endpoint in `BACKEND_API.md` and `documents/backend-spec-admin.md`.
 - Admin API failures return `{ success: false, errorKey }`. A `403` is mapped to `admin.forbidden`. Views map known keys to i18n messages and fall back to a generic error.
+- User management lives in `AdminUsersView.vue` and uses the reusable `src/components/admin/AdminModal.vue` for its dialogs (Escape to close, focus trap, can't be dismissed while saving). `PaginationControls` takes a `showingKey` prop to change its "Showing X to Y of N ..." label.
+- A disabled account is rejected at login with `errorKey: 'login.accountDisabled'`. Users cannot disable or delete themselves (UI and backend).
 - Destructive actions (e.g. password reset) use an inline two-step confirmation before calling the API.
-- In mock mode, `createBook()` appends to the in-memory book list (visible until reload), and `resetUserPassword()` only validates the username without changing the mock data.
+- In mock mode, `createBook()` appends to the in-memory book list (visible until reload), and `resetUserPassword()` only validates the username without changing the mock data. User edits (email, enabled) and deletes mutate the in-memory `users.json` array until reload; because `authenticate()` reads the same array, disabling or deleting a mock user affects login too.
 
 ### Change log
 

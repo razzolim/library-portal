@@ -138,11 +138,7 @@
 import { ref, reactive, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { resetUserPassword } from '../../api/admin.js'
-
-const MIN_PASSWORD_LENGTH = 8
-const GENERATED_PASSWORD_LENGTH = 14
-// Excludes look-alike characters (0/O, 1/l/I) so the password is easy to share.
-const PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*?'
+import { MIN_PASSWORD_LENGTH, generatePassword as randomPassword } from '../../utils/password.js'
 
 const ERROR_KEY_MAP = {
   'admin.resetPassword.userNotFound': 'admin.resetPassword.userNotFound',
@@ -167,9 +163,7 @@ function onFieldInput(field) {
 }
 
 function generatePassword() {
-  const values = new Uint32Array(GENERATED_PASSWORD_LENGTH)
-  crypto.getRandomValues(values)
-  const password = Array.from(values, (v) => PASSWORD_ALPHABET[v % PASSWORD_ALPHABET.length]).join('')
+  const password = randomPassword()
 
   form.newPassword = password
   form.confirmPassword = password

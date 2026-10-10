@@ -32,6 +32,10 @@ export async function authenticate({ username, password, rememberMe }) {
       return { success: false, errorKey: 'login.invalidCredentials' }
     }
 
+    if (user.enabled === false) {
+      return { success: false, errorKey: 'login.accountDisabled' }
+    }
+
     return {
       success: true,
       user: {
@@ -50,6 +54,9 @@ export async function authenticate({ username, password, rememberMe }) {
     const { data } = await client.post('/auth/login', { username, password, rememberMe })
     return data
   } catch (err) {
+    if (err.response?.data?.errorKey === 'login.accountDisabled') {
+      return { success: false, errorKey: 'login.accountDisabled' }
+    }
     if (err.response?.status === 401 || err.response?.status === 403) {
       return { success: false, errorKey: 'login.invalidCredentials' }
     }

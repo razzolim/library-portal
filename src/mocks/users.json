@@ -5,7 +5,9 @@
     "password": "reader",
     "fullName": "Demo Reader",
     "role": "reader",
-    "locale": "pt-BR"
+    "locale": "pt-BR",
+    "email": "reader@example.com",
+    "enabled": true
   },
   {
     "id": 2,
@@ -13,6 +15,128 @@
     "password": "admin",
     "fullName": "Demo Admin",
     "role": "admin",
-    "locale": "en"
+    "locale": "en",
+    "email": "admin@example.com",
+    "enabled": true
+  },
+  {
+    "id": 3,
+    "username": "ajohnson",
+    "password": "ajohnson-pass",
+    "fullName": "Alice Johnson",
+    "email": "ajohnson@example.com",
+    "role": "reader",
+    "locale": "pt-BR",
+    "enabled": true
+  },
+  {
+    "id": 4,
+    "username": "bcarvalho",
+    "password": "bcarvalho-pass",
+    "fullName": "Bruno Carvalho",
+    "email": "bcarvalho@example.com",
+    "role": "reader",
+    "locale": "en",
+    "enabled": true
+  },
+  {
+    "id": 5,
+    "username": "cmendes",
+    "password": "cmendes-pass",
+    "fullName": "Carla Mendes",
+    "email": "cmendes@example.com",
+    "role": "reader",
+    "locale": "pt-BR",
+    "enabled": true
+  },
+  {
+    "id": 6,
+    "username": "dsouza",
+    "password": "dsouza-pass",
+    "fullName": "Daniel Souza",
+    "email": "dsouza@example.com",
+    "role": "reader",
+    "locale": "en",
+    "enabled": true
+  },
+  {
+    "id": 7,
+    "username": "erossi",
+    "password": "erossi-pass",
+    "fullName": "Elena Rossi",
+    "email": "erossi@example.com",
+    "role": "reader",
+    "locale": "pt-BR",
+    "enabled": false
+  },
+  {
+    "id": 8,
+    "username": "falves",
+    "password": "falves-pass",
+    "fullName": "Felipe Alves",
+    "email": "falves@example.com",
+    "role": "reader",
+    "locale": "en",
+    "enabled": true
+  },
+  {
+    "id": 9,
+    "username": "glima",
+    "password": "glima-pass",
+    "fullName": "Gabriela Lima",
+    "email": "glima@example.com",
+    "role": "reader",
+    "locale": "pt-BR",
+    "enabled": true
+  },
+  {
+    "id": 10,
+    "username": "hcosta",
+    "password": "hcosta-pass",
+    "fullName": "Henrique Costa",
+    "email": "hcosta@example.com",
+    "role": "reader",
+    "locale": "en",
+    "enabled": true
+  },
+  {
+    "id": 11,
+    "username": "irocha",
+    "password": "irocha-pass",
+    "fullName": "Isabela Rocha",
+    "email": "irocha@example.com",
+    "role": "reader",
+    "locale": "pt-BR",
+    "enabled": true
+  },
+  {
+    "id": 12,
+    "username": "jpereira",
+    "password": "jpereira-pass",
+    "fullName": "João Pereira",
+    "email": "jpereira@example.com",
+    "role": "reader",
+    "locale": "en",
+    "enabled": true
+  },
+  {
+    "id": 13,
+    "username": "ksmith",
+    "password": "ksmith-pass",
+    "fullName": "Karen Smith",
+    "email": "ksmith@example.com",
+    "role": "reader",
+    "locale": "pt-BR",
+    "enabled": true
+  },
+  {
+    "id": 14,
+    "username": "lmartins",
+    "password": "lmartins-pass",
+    "fullName": "Lucas Martins",
+    "email": "lmartins@example.com",
+    "role": "reader",
+    "locale": "en",
+    "enabled": true
   }
 ]

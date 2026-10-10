@@ -18,6 +18,7 @@ This is the **MVP (Minimum Viable Product)** frontend. The backend API is not ye
 - **Profile menu** in the header with a dropdown linking to **My account** and **Logout**.
 - **Account page** (`/account`) showing the current user's profile and language preference.
 - **Admin area** (`/admin`), visible only to users with the `admin` role through an **Admin** entry in the profile menu. It has a sidebar and overview cards, and currently offers:
+  - **Users**: paginated, searchable list of all users with per-row actions: reset password, edit email, disable/enable, and delete (typed confirmation). Admins cannot disable or delete themselves.
   - **Reset password**: set a new password for another user (username + new password, with confirmation and a strong-password generator).
   - **Add book**: add a book to the collection with inline validation and genre suggestions.
   New tools can be added through `src/views/admin/adminTools.js`.
@@ -54,7 +55,8 @@ library-portal/
 ├── .dockerignore              # Files excluded from the Docker build context
 ├── README.md                  # This file
 ├── documents/
-│   ├── backend-spec-admin.md # Backend specification for the admin area
+│   ├── backend-spec-admin.md # Backend specification for the admin area (reset password, add book)
+│   ├── backend-spec-admin-users.md # Backend specification for admin user management
 │   └── release/
 │       └── v1.0.0.md          # Railway deployment runbook for v1.0.0
 └── src/
@@ -240,7 +242,7 @@ The portal uses Vite's built-in `.env` support. Environment variables that need 
 7. Click the **profile icon** in the header to open the user menu. Choose **My account** to view your profile and change the language, or choose **Logout** to return to the login page.
 8. The language switcher is now on the **Account** page.
 9. Click the **Change log** link in the footer to view all portal updates.
-10. Sign in as `admin / admin` to see the **Admin** entry in the profile menu. From the admin area you can reset another user's password or add a new book. In mock mode, added books appear in the library until the page is reloaded.
+10. Sign in as `admin / admin` to see the **Admin** entry in the profile menu. From the admin area you can manage users (list, reset password, edit email, disable/enable, delete), reset a password by username, or add a new book. In mock mode, added books appear in the library until the page is reloaded.
 
 ---
 
@@ -248,7 +250,7 @@ The portal uses Vite's built-in `.env` support. Environment variables that need 
 
 Because the backend is not yet implemented, the portal uses JSON mock files:
 
-- `src/mocks/users.json` — contains the demo users (`reader / reader` and the admin `admin / admin`).
+- `src/mocks/users.json` — contains the demo users (`reader / reader`, the admin `admin / admin`, and several extra users used to exercise the paginated user list). In mock mode, user edits, disabling, and deletion last until the page is reloaded.
 - `src/mocks/books.json` — contains 12 sample books. Each book has an optional `pdfUrl` field that can point to a Google Drive share link.
 
 The mock API functions in `src/api/books.js` return Promises with a small delay (`500ms`) to simulate network latency.
@@ -322,6 +324,9 @@ The expected backend endpoints are:
 | `fetchBooks` | `GET` | `/books` | Array of books. Each book may include `pdfUrl` (a backend URL or Google Drive link). |
 | `fetchBookById` | `GET` | `/books/:id` | Single book or `null` / `404`. |
 | `resetUserPassword` | `PATCH` | `/admin/users/:username/password` | `{ newPassword }` → `{ success, username }`. Admin only. |
+| `fetchUsers` | `GET` | `/admin/users` | `?page&pageSize&query` → `{ items, total, page, pageSize }`. Admin only. |
+| `updateUserEmail` / `setUserEnabled` | `PATCH` | `/admin/users/:username` | `{ email }` or `{ enabled }` → `{ success, user }`. Admin only. |
+| `deleteUser` | `DELETE` | `/admin/users/:username` | `{ success: true }`. Admin only. |
 | `createBook` | `POST` | `/books` | Book fields → `{ success, book }` (`201`). Admin only. |
 | `fetchChangelog` | `GET` | `/changelog` | Array of change log entries. Each entry must include `id`, `version`, `date`, `title`, and `description` (Markdown). |
 

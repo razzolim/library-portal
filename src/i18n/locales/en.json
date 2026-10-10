@@ -61,6 +61,10 @@
       "addBook": {
         "title": "Add book",
         "description": "Add a new book to the library collection."
+      },
+      "users": {
+        "title": "Users",
+        "description": "View all users and reset passwords, edit emails, disable, or delete accounts."
       }
     },
     "resetPassword": {
@@ -124,6 +128,71 @@
       "duplicateIsbn": "A book with this ISBN already exists.",
       "invalidFields": "Some fields are invalid. Please review the form.",
       "error": "Failed to add the book. Please try again."
+    },
+    "close": "Close",
+    "users": {
+      "searchLabel": "Search users",
+      "searchPlaceholder": "Search by name, username, or email...",
+      "loading": "Loading users...",
+      "loadError": "Failed to load users. Please try again.",
+      "retry": "Try again",
+      "empty": "No users found.",
+      "emptySearch": "No users match your search.",
+      "columns": {
+        "user": "User",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "roles": {
+        "reader": "Reader",
+        "admin": "Admin"
+      },
+      "status": {
+        "active": "Active",
+        "disabled": "Disabled"
+      },
+      "you": "You",
+      "noEmail": "No email",
+      "actions": "Actions",
+      "actionsFor": "Actions for {username}",
+      "resetPassword": "Reset password",
+      "editEmail": "Edit email",
+      "disable": "Disable",
+      "enable": "Enable",
+      "delete": "Delete",
+      "selfHint": "You cannot disable or delete your own account.",
+      "resetTitle": "Reset password for {username}",
+      "emailTitle": "Edit email for {username}",
+      "emailLabel": "Email",
+      "emailPlaceholder": "name{'@'}example.com",
+      "saveEmail": "Save email",
+      "saving": "Saving...",
+      "disableTitle": "Disable {username}?",
+      "disableMessage": "{username} will be signed out and will not be able to sign in until the account is enabled again.",
+      "enableTitle": "Enable {username}?",
+      "enableMessage": "{username} will be able to sign in again.",
+      "deleteTitle": "Delete {username}?",
+      "deleteMessage": "This permanently deletes the account \"{username}\". This cannot be undone.",
+      "typeToConfirm": "Type \"{username}\" to confirm",
+      "deleteConfirm": "Delete user",
+      "notices": {
+        "passwordReset": "Password for \"{username}\" was reset.",
+        "emailUpdated": "Email for \"{username}\" was updated.",
+        "disabled": "\"{username}\" was disabled.",
+        "enabled": "\"{username}\" was enabled.",
+        "deleted": "\"{username}\" was deleted."
+      },
+      "errors": {
+        "notFound": "This user no longer exists.",
+        "duplicateEmail": "Another user already has this email.",
+        "invalidEmail": "Enter a valid email address.",
+        "emailRequired": "Enter an email address.",
+        "cannotModifySelf": "You cannot disable or delete your own account.",
+        "lastAdmin": "This is the last active admin and cannot be disabled or deleted.",
+        "generic": "Something went wrong. Please try again."
+      }
     }
   },
   "changelog": {
@@ -148,7 +217,8 @@
     "demoCredentials": "Demo credentials:",
     "invalidCredentials": "Invalid username or password.",
     "missingToken": "Sign-in succeeded but the server did not return an access token. Please try again or contact support.",
-    "unexpectedError": "An unexpected error occurred. Please try again."
+    "unexpectedError": "An unexpected error occurred. Please try again.",
+    "accountDisabled": "This account is disabled. Contact an administrator."
   },
   "library": {
     "title": "Library Collection",
@@ -191,7 +261,8 @@
     "previous": "Previous",
     "next": "Next",
     "pageInfo": "Page {current} of {total}",
-    "showing": "Showing {start} to {end} of {total} books"
+    "showing": "Showing {start} to {end} of {total} books",
+    "showingUsers": "Showing {start} to {end} of {total} users"
   },
   "language": {
     "label": "Language",
