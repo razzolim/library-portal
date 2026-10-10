@@ -42,6 +42,7 @@ Add these columns to `users` (names are suggestions):
 | `email` | `VARCHAR(255)` NULL | Optional. Stored trimmed. **Unique, case-insensitive** (unique index on `LOWER(email)`, ignoring NULLs). |
 | `enabled` | `BOOLEAN NOT NULL DEFAULT TRUE` | `false` blocks login and invalidates sessions. |
 | `deleted_at` | `TIMESTAMP` NULL | Only if you choose soft delete (see §4). |
+| `last_login_at` | `TIMESTAMP` NULL | Set to the current time on every successful sign-in (`POST /auth/login`). `NULL` means the user has never signed in. Token refreshes do not update it. |
 
 Existing users get `enabled = true` and `email = NULL`.
 
@@ -55,7 +56,8 @@ Every endpoint below returns users in this shape. **Never** include the password
   "fullName": "Alice Johnson",
   "email": "ajohnson@example.com",
   "role": "reader",
-  "enabled": true
+  "enabled": true,
+  "lastLoginAt": "2026-10-08T13:02:47.000Z"
 }
 ```
 
@@ -67,6 +69,7 @@ Every endpoint below returns users in this shape. **Never** include the password
 | `email` | string \| null | `null` when not set. |
 | `role` | string | `"reader"` or `"admin"`. |
 | `enabled` | boolean | Account status. |
+| `lastLoginAt` | string \| null | ISO 8601 timestamp in UTC of the last successful sign-in. `null` when the user has never signed in. The frontend shows it in the user's locale and time zone. |
 
 ---
 
@@ -81,9 +84,19 @@ List users with server-side pagination and search.
 | `page` | integer | `1` | 1-based. Values < 1 → treat as 1. |
 | `pageSize` | integer | `12` | Allowed: 1–100. The UI offers 6, 12, 24, and 48. Clamp values above 100. |
 | `query` | string | *(none)* | Optional search. Case-insensitive "contains" match on `username`, `fullName`, or `email`. Trim; ignore if empty. Escape `%`/`_` if using SQL `LIKE`. |
+| `sort` | string | *(none)* | Optional. Only `lastLoginAt` is supported. Ignore any other value and use the default order (never sort by arbitrary column names from the request). |
+| `order` | string | `desc` | `asc` or `desc`. Only used with `sort`. Any other value → `desc`. |
 
 ### Ordering
-Stable and deterministic: `ORDER BY LOWER(fullName), id`. The same order must be used for every page, otherwise users will appear twice or be skipped when paging.
+Stable and deterministic. The same order must be used for every page, otherwise users will appear twice or be skipped when paging. Sorting must happen in the query, before pagination, so it spans all pages.
+
+| Request | `ORDER BY` |
+|---|---|
+| No `sort` (default) | `LOWER(fullName), id` |
+| `sort=lastLoginAt&order=desc` | `last_login_at DESC NULLS LAST, LOWER(fullName), id` |
+| `sort=lastLoginAt&order=asc` | `last_login_at ASC NULLS FIRST, LOWER(fullName), id` |
+
+Users who never signed in (`NULL`) count as the oldest sign-in: last when sorting newest first, first when sorting oldest first, so inactive accounts are easy to find. Index `last_login_at` if the user table can grow large.
 
 ### Success response (200)
 
@@ -96,7 +109,8 @@ Stable and deterministic: `ORDER BY LOWER(fullName), id`. The same order must be
       "fullName": "Alice Johnson",
       "email": "ajohnson@example.com",
       "role": "reader",
-      "enabled": true
+      "enabled": true,
+      "lastLoginAt": "2026-10-08T13:02:47.000Z"
     }
   ],
   "total": 14,
@@ -269,8 +283,9 @@ The frontend also checks that both password fields match and are at least 8 char
 
 ## 9. Frontend behavior to be aware of
 
-- After every successful email edit, enable/disable, or delete, the frontend **reloads the current page** with the same `page`, `pageSize`, and `query`.
-- Searching waits 300 ms after typing stops, resets to page 1, then calls `GET /admin/users`.
+- After every successful email edit, enable/disable, or delete, the frontend **reloads the current page** with the same `page`, `pageSize`, `query`, `sort`, and `order`.
+- Searching waits 300 ms after typing stops, resets to page 1, then calls `GET /admin/users`. The current sort is kept.
+- Clicking the **Last login** column header sorts by `lastLoginAt` newest first; clicking again switches to oldest first. Changing the sort resets to page 1. On phones the same choice is a select above the list.
 - If the reloaded page is empty but `total > 0`, the frontend moves to the last page.
 - Buttons are disabled while a request is in flight, so duplicate submissions are not expected, but the endpoints should still be idempotent where possible (e.g. disabling an already-disabled user succeeds).
 - The signed-in admin's own row shows a **You** badge and the Disable/Delete actions are disabled in the UI. The backend must still enforce this (§3, §4).
@@ -280,6 +295,7 @@ The frontend also checks that both password fields match and are at least 8 char
 ## 10. Acceptance checklist
 
 - [ ] `GET /admin/users` returns `{ items, total, page, pageSize }` with stable ordering, supports `query`, and returns `items: []` (not 404) past the last page.
+- [ ] Every user includes `lastLoginAt` (ISO 8601 UTC or `null`), updated on each successful sign-in, and `sort=lastLoginAt&order=asc|desc` orders across all pages with never-signed-in users treated as oldest.
 - [ ] Responses never include passwords, hashes, or tokens.
 - [ ] `PATCH /admin/users/:username` updates `email` (validated, unique case-insensitively) and `enabled`, returning the updated user.
 - [ ] Disabling a user revokes their sessions and blocks login with `403` + `login.accountDisabled`.

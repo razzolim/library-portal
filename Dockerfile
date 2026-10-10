@@ -13,13 +13,15 @@ ARG VITE_API_HOST
 ARG VITE_API_PORT
 ARG VITE_USE_MOCK_API
 ARG VITE_ENVIRONMENT
+ARG VITE_COVERS_BASE_URL
 
 # Promote args to env vars so Vite can read them during the build step.
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
     VITE_API_HOST=$VITE_API_HOST \
     VITE_API_PORT=$VITE_API_PORT \
     VITE_USE_MOCK_API=$VITE_USE_MOCK_API \
-    VITE_ENVIRONMENT=$VITE_ENVIRONMENT
+    VITE_ENVIRONMENT=$VITE_ENVIRONMENT \
+    VITE_COVERS_BASE_URL=$VITE_COVERS_BASE_URL
 
 # Install dependencies first (separate layer — cached unless package.json changes).
 COPY package*.json ./

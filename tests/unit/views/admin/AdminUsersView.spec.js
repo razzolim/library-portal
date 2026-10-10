@@ -21,9 +21,9 @@ vi.mock('../../../../src/api/admin.js', () => ({
 }))
 
 const USERS = [
-  { id: 2, username: 'admin', fullName: 'Demo Admin', email: 'admin@example.com', role: 'admin', enabled: true },
-  { id: 3, username: 'ajohnson', fullName: 'Alice Johnson', email: 'ajohnson@example.com', role: 'reader', enabled: true },
-  { id: 4, username: 'bcarvalho', fullName: 'Bruno Carvalho', email: null, role: 'reader', enabled: false }
+  { id: 2, username: 'admin', fullName: 'Demo Admin', email: 'admin@example.com', role: 'admin', enabled: true, lastLoginAt: '2026-10-09T21:14:05.000Z' },
+  { id: 3, username: 'ajohnson', fullName: 'Alice Johnson', email: 'ajohnson@example.com', role: 'reader', enabled: true, lastLoginAt: '2026-10-08T13:02:47.000Z' },
+  { id: 4, username: 'bcarvalho', fullName: 'Bruno Carvalho', email: null, role: 'reader', enabled: false, lastLoginAt: null }
 ]
 
 function page(items = USERS, total = items.length) {
@@ -261,5 +261,83 @@ describe('AdminUsersView', () => {
 
     expect(fetchUsers).toHaveBeenLastCalledWith({ page: 1, pageSize: 12, query: '' })
     expect(wrapper.findAll('tbody tr')).toHaveLength(3)
+  })
+
+  it('shows when each user last signed in, or that they never did', async () => {
+    wrapper = await mountView()
+
+    const rowFor = (username) => wrapper.findAll('tbody tr').find((r) => r.text().includes(`@${username}`))
+    const time = rowFor('ajohnson').find('.admin-users__last-login time')
+
+    expect(time.attributes('datetime')).toBe('2026-10-08T13:02:47.000Z')
+    expect(time.text()).toMatch(/ago|yesterday|last|now/)
+    expect(rowFor('ajohnson').find('.admin-users__last-login-date').text()).toContain('2026')
+    expect(rowFor('bcarvalho').text()).toContain('Never signed in')
+  })
+
+  it('sorts by last login on the server, newest first, then oldest first', async () => {
+    wrapper = await mountView()
+    const header = () => wrapper.findAll('th').find((th) => th.text().includes('Last login'))
+
+    expect(header().attributes('aria-sort')).toBe('none')
+
+    await header().find('button').trigger('click')
+    await flushPromises()
+
+    expect(fetchUsers).toHaveBeenLastCalledWith({ page: 1, pageSize: 12, query: '', sort: 'lastLoginAt', order: 'desc' })
+    expect(header().attributes('aria-sort')).toBe('descending')
+
+    await header().find('button').trigger('click')
+    await flushPromises()
+
+    expect(fetchUsers).toHaveBeenLastCalledWith({ page: 1, pageSize: 12, query: '', sort: 'lastLoginAt', order: 'asc' })
+    expect(header().attributes('aria-sort')).toBe('ascending')
+  })
+
+  it('goes back to the first page when the sort changes', async () => {
+    fetchUsers.mockResolvedValue(page(USERS, 30))
+    wrapper = await mountView()
+
+    const next = wrapper.findAll('.pagination__button').find((b) => b.text() === 'Next')
+    await next.trigger('click')
+    await flushPromises()
+    expect(fetchUsers).toHaveBeenLastCalledWith({ page: 2, pageSize: 12, query: '' })
+
+    await wrapper.findAll('th').find((th) => th.text().includes('Last login')).find('button').trigger('click')
+    await flushPromises()
+
+    expect(fetchUsers).toHaveBeenLastCalledWith({ page: 1, pageSize: 12, query: '', sort: 'lastLoginAt', order: 'desc' })
+  })
+
+  it('keeps the sort when searching', async () => {
+    vi.useFakeTimers()
+    try {
+      wrapper = await mountView()
+      await wrapper.findAll('th').find((th) => th.text().includes('Last login')).find('button').trigger('click')
+      await flushPromises()
+
+      await wrapper.find('input[type="search"]').setValue('alice')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      expect(fetchUsers).toHaveBeenLastCalledWith({ page: 1, pageSize: 12, query: 'alice', sort: 'lastLoginAt', order: 'desc' })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('offers the same sort options in a select for phones', async () => {
+    wrapper = await mountView()
+
+    await wrapper.find('.admin-users__mobile-sort select').setValue('lastLoginAt:asc')
+    await flushPromises()
+
+    expect(fetchUsers).toHaveBeenLastCalledWith({ page: 1, pageSize: 12, query: '', sort: 'lastLoginAt', order: 'asc' })
+    expect(wrapper.findAll('th').find((th) => th.text().includes('Last login')).attributes('aria-sort')).toBe('ascending')
+
+    await wrapper.find('.admin-users__mobile-sort select').setValue('')
+    await flushPromises()
+
+    expect(fetchUsers).toHaveBeenLastCalledWith({ page: 1, pageSize: 12, query: '' })
   })
 })

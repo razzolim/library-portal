@@ -68,6 +68,7 @@ library-portal/
     ├── components/             # Reusable components
     │   ├── AppHeader.vue
     │   ├── BookCard.vue
+    │   ├── BookCover.vue       # Real cover image, or a printed cover in the book's color
     │   ├── BookDetailModal.vue
     │   ├── BookPdfViewer.vue
     │   ├── ChangeLog.vue
@@ -97,6 +98,7 @@ library-portal/
 | `VITE_API_PORT` | Backend port (fallback). |
 | `VITE_USE_MOCK_API` | `true` to use in-memory mocks; `false` to call the real backend. |
 | `VITE_ENVIRONMENT` | Environment label for debugging. |
+| `VITE_COVERS_BASE_URL` | Optional. Cover images by ISBN (`https://covers.openlibrary.org/b/isbn`). Empty means printed covers only; `.env.test` keeps it empty so tests never hit the network. |
 
 ### Environment files
 
@@ -162,7 +164,7 @@ baseURL: http://localhost:3000/api
 - `/changelog` requires auth and renders `ChangeLogView`.
 - `/admin` requires auth **and** the `admin` role (`meta.requiresAdmin`). It renders the `AdminView` layout with child routes:
   - `/admin` (`admin`) — overview cards for every tool.
-  - `/admin/users` (`admin-users`) — paginated, searchable user list with actions: reset password, edit email, disable/enable, delete.
+  - `/admin/users` (`admin-users`) — paginated, searchable user list with actions: reset password, edit email, disable/enable, delete. Shows each user's last login (`lastLoginAt`, relative plus date/time, or "Never signed in") and sorts by it on the server (`sort=lastLoginAt&order=desc|asc`); the default order is by name.
   - `/admin/users/reset-password` (`admin-reset-password`) — reset another user's password.
   - `/admin/books/new` (`admin-add-book`) — add a book.
   - Non-admins are redirected to `/library`. Child routes inherit `requiresAdmin` through the merged `to.meta`.
@@ -191,6 +193,12 @@ baseURL: http://localhost:3000/api
 - Each entry must contain: `id`, `version`, `date`, `title`, and `description`.
 - The `description` field is Markdown. The frontend renders it using `marked` and sanitizes the result with `DOMPurify` via `src/utils/markdown.js`.
 - `src/utils/changelog.js` provides `getLatestChangelogVersion()` to display the current app version in the footer.
+
+### Book covers
+
+- Render covers with `BookCover` (sizes `sm`, `md`, `lg`; used by the grid cards, list rows and the detail modal); don't re-implement covers or colors.
+- The cover image comes from the book's `coverUrl`, or from `VITE_COVERS_BASE_URL` + ISBN via `getCoverImageUrl()` in `src/utils/cover.js`.
+- Every book is a portrait 2:3 cover with no tile behind it. A printed cover (title and author on `coverColor`) is always drawn underneath; the image fades in once loaded and is dropped on error, so missing covers fall back automatically.
 
 ### PDF Viewer
 

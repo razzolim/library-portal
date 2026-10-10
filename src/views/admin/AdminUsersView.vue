@@ -21,6 +21,15 @@
           autocomplete="off"
         />
       </label>
+      <!-- Phones hide the table header, so sorting moves into the toolbar there. -->
+      <label class="admin-users__mobile-sort">
+        <span class="admin-users__sr-only">{{ $t('admin.users.sortLabel') }}</span>
+        <select v-model="sortChoice" class="admin-form__input">
+          <option value="">{{ $t('admin.users.sortDefault') }}</option>
+          <option value="lastLoginAt:desc">{{ $t('admin.users.sortLastLoginNewest') }}</option>
+          <option value="lastLoginAt:asc">{{ $t('admin.users.sortLastLoginOldest') }}</option>
+        </select>
+      </label>
     </div>
 
     <div v-if="isLoading && users.length === 0" class="admin-users__state">
@@ -48,6 +57,21 @@
             <th scope="col">{{ $t('admin.users.columns.email') }}</th>
             <th scope="col">{{ $t('admin.users.columns.role') }}</th>
             <th scope="col">{{ $t('admin.users.columns.status') }}</th>
+            <th scope="col" :aria-sort="ariaSort('lastLoginAt')">
+              <button
+                type="button"
+                class="admin-users__sort"
+                :class="{ 'admin-users__sort--active': sortField === 'lastLoginAt' }"
+                :title="sortHint('lastLoginAt')"
+                @click="toggleSort('lastLoginAt')"
+              >
+                {{ $t('admin.users.columns.lastLogin') }}
+                <svg class="admin-users__sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline v-if="sortField !== 'lastLoginAt' || sortOrder === 'asc'" points="8 10 12 6 16 10" />
+                  <polyline v-if="sortField !== 'lastLoginAt' || sortOrder === 'desc'" points="8 14 12 18 16 14" />
+                </svg>
+              </button>
+            </th>
             <th scope="col"><span class="admin-users__sr-only">{{ $t('admin.users.columns.actions') }}</span></th>
           </tr>
         </thead>
@@ -73,6 +97,15 @@
               <span class="admin-users__badge" :class="user.enabled ? 'admin-users__badge--active' : 'admin-users__badge--disabled'">
                 {{ user.enabled ? $t('admin.users.status.active') : $t('admin.users.status.disabled') }}
               </span>
+            </td>
+            <td :data-label="$t('admin.users.columns.lastLogin')">
+              <span v-if="user.lastLoginAt" class="admin-users__last-login">
+                <time :datetime="user.lastLoginAt" :title="formatDateTime(user.lastLoginAt, locale)">
+                  {{ formatRelativeTime(user.lastLoginAt, locale) }}
+                </time>
+                <span class="admin-users__last-login-date">{{ formatDateTime(user.lastLoginAt, locale) }}</span>
+              </span>
+              <span v-else class="admin-users__muted">{{ $t('admin.users.neverSignedIn') }}</span>
             </td>
             <td class="admin-users__actions-cell">
               <div class="admin-users__menu-wrap">
@@ -307,6 +340,7 @@ import {
 } from '../../api/admin.js'
 import { useAuthStore } from '../../stores/auth'
 import { MIN_PASSWORD_LENGTH, generatePassword } from '../../utils/password.js'
+import { formatDateTime, formatRelativeTime } from '../../utils/date.js'
 import AdminModal from '../../components/admin/AdminModal.vue'
 import LoadingSpinner from '../../components/LoadingSpinner.vue'
 import PaginationControls from '../../components/PaginationControls.vue'
@@ -325,7 +359,7 @@ const ERROR_KEY_MAP = {
   'admin.forbidden': 'admin.forbidden'
 }
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const auth = useAuthStore()
 
 const users = ref([])
@@ -338,6 +372,9 @@ const isLoading = ref(false)
 const loadError = ref('')
 const notice = ref('')
 const openMenu = ref(null)
+// Server-side sort: null keeps the backend's default order (by name).
+const sortField = ref(null)
+const sortOrder = ref('desc')
 
 const dialog = ref(null)
 const saving = ref(false)
@@ -372,7 +409,12 @@ async function loadUsers() {
   loadError.value = ''
 
   try {
-    let result = await fetchUsers({ page: page.value, pageSize: pageSize.value, query: appliedQuery.value })
+    const params = { page: page.value, pageSize: pageSize.value, query: appliedQuery.value }
+    if (sortField.value) {
+      params.sort = sortField.value
+      params.order = sortOrder.value
+    }
+    let result = await fetchUsers(params)
     if (current !== requestId) return
 
     // The last item of the last page was removed: go back to the new last page.
@@ -398,7 +440,8 @@ watch(query, (value) => {
   }, SEARCH_DEBOUNCE_MS)
 })
 
-watch(appliedQuery, () => {
+// A new search or sort order starts again from the first page.
+watch([appliedQuery, sortField, sortOrder], () => {
   closeMenu()
   if (page.value !== 1) {
     page.value = 1
@@ -406,6 +449,36 @@ watch(appliedQuery, () => {
     loadUsers()
   }
 })
+
+// First click sorts by most recent; clicking again flips the order.
+function toggleSort(field) {
+  if (sortField.value === field) {
+    sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+  } else {
+    sortField.value = field
+    sortOrder.value = 'desc'
+  }
+}
+
+// "field:order" for the phone sort select; "" is the default order.
+const sortChoice = computed({
+  get: () => (sortField.value ? `${sortField.value}:${sortOrder.value}` : ''),
+  set: (value) => {
+    const [field, order] = value ? value.split(':') : [null, 'desc']
+    sortField.value = field
+    sortOrder.value = order
+  }
+})
+
+function ariaSort(field) {
+  if (sortField.value !== field) return 'none'
+  return sortOrder.value === 'asc' ? 'ascending' : 'descending'
+}
+
+function sortHint(field) {
+  const nextIsOldest = sortField.value === field && sortOrder.value === 'desc'
+  return nextIsOldest ? t('admin.users.sortOldestFirst') : t('admin.users.sortNewestFirst')
+}
 
 watch([page, pageSize], () => {
   closeMenu()
@@ -566,11 +639,19 @@ onUnmounted(() => {
 }
 
 .admin-users__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   margin-bottom: 1rem;
+}
+
+.admin-users__mobile-sort {
+  display: none;
 }
 
 .admin-users__search {
   display: block;
+  flex: 1 1 16rem;
   max-width: 24rem;
 }
 
@@ -625,6 +706,57 @@ onUnmounted(() => {
 
 .admin-users__email {
   word-break: break-all;
+}
+
+.admin-users__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: -0.25rem -0.375rem;
+  padding: 0.25rem 0.375rem;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.admin-users__sort:hover {
+  color: var(--color-text);
+  background-color: var(--color-background-soft);
+}
+
+.admin-users__sort:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.admin-users__sort--active {
+  color: var(--color-primary-dark);
+}
+
+.admin-users__sort-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+.admin-users__sort:not(.admin-users__sort--active) .admin-users__sort-icon {
+  opacity: 0.45;
+}
+
+.admin-users__last-login {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+
+.admin-users__last-login-date {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
 }
 
 .admin-users__badge {
@@ -728,6 +860,15 @@ onUnmounted(() => {
 
 /* Small screens: each row becomes a card with labelled fields. */
 @media (max-width: 640px) {
+  .admin-users__search {
+    max-width: none;
+  }
+
+  .admin-users__mobile-sort {
+    display: block;
+    flex: 1 1 100%;
+  }
+
   .admin-users__table thead {
     position: absolute;
     width: 1px;
@@ -779,6 +920,10 @@ onUnmounted(() => {
 
   .admin-users__actions-cell .admin-users__menu-wrap {
     margin-left: auto;
+  }
+
+  .admin-users__last-login {
+    align-items: flex-end;
   }
 }
 </style>

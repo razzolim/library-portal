@@ -82,11 +82,7 @@
             class="book-list-item"
             :aria-label="$t('bookDetail.ariaLabel', { title: book.title })"
           >
-            <div class="book-list-item__cover" :style="{ backgroundColor: book.coverColor || '#3b82f6' }">
-              <span class="book-list-item__initials">
-                {{ book.title.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() }}
-              </span>
-            </div>
+            <BookCover :book="book" size="sm" class="book-list-item__cover" />
             <div class="book-list-item__content">
               <h3 class="book-list-item__title">{{ book.title }}</h3>
               <p class="book-list-item__author">{{ book.author }}</p>
@@ -126,6 +122,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { fetchBooks } from '../api/books.js'
 import BookCard from '../components/BookCard.vue'
+import BookCover from '../components/BookCover.vue'
 import BookDetailModal from '../components/BookDetailModal.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import PaginationControls from '../components/PaginationControls.vue'
@@ -296,8 +293,8 @@ onMounted(() => {
 
 .library-view__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 2rem 1.5rem;
 }
 
 .library-view__view-toggle {
@@ -369,15 +366,7 @@ onMounted(() => {
 
 .book-list-item__cover {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  color: var(--color-white);
-  font-size: 1rem;
-  font-weight: 700;
+  width: 2.5rem;
 }
 
 .book-list-item__content {
@@ -452,6 +441,11 @@ onMounted(() => {
 @media (max-width: 600px) {
   .library-view {
     padding: 1rem;
+  }
+
+  .library-view__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 1rem;
   }
 
   .library-view__view-toggle {

@@ -14,8 +14,8 @@
       </div>
 
       <div v-else-if="book" class="book-detail-modal__content">
-        <div class="book-detail-modal__cover" :style="{ backgroundColor: coverColor }">
-          <span class="book-detail-modal__initials">{{ initials }}</span>
+        <div class="book-detail-modal__cover-wrap">
+          <BookCover :book="book" size="lg" class="book-detail-modal__cover" />
         </div>
         <div class="book-detail-modal__info">
           <h2 id="book-detail-title" class="book-detail-modal__title">{{ book.title }}</h2>
@@ -75,6 +75,7 @@ import { getDrivePreviewUrl } from '../utils/drive.js'
 import { formatDate } from '../utils/date.js'
 import { getCurrentLocale } from '../i18n/index.js'
 import LoadingSpinner from './LoadingSpinner.vue'
+import BookCover from './BookCover.vue'
 
 const props = defineProps({
   bookId: {
@@ -97,8 +98,6 @@ const bookId = computed(() => {
   return typeof props.bookId === 'string' ? parseInt(props.bookId, 10) : props.bookId
 })
 
-const coverColor = computed(() => book.value?.coverColor || '#3b82f6')
-
 const previewUrl = computed(() => {
   if (!book.value?.pdfUrl) {
     return null
@@ -107,16 +106,6 @@ const previewUrl = computed(() => {
 })
 
 const hasPdf = computed(() => Boolean(previewUrl.value))
-
-const initials = computed(() => {
-  if (!book.value) return ''
-  return book.value.title
-    .split(' ')
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase()
-})
 
 const statusLabel = computed(() => {
   if (!book.value) return ''
@@ -262,15 +251,14 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
-.book-detail-modal__cover {
-  height: 160px;
+.book-detail-modal__cover-wrap {
   display: flex;
-  align-items: center;
   justify-content: center;
-  color: var(--color-white);
-  font-size: 2.5rem;
-  font-weight: 700;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 2rem 1.5rem 0.5rem;
+}
+
+.book-detail-modal__cover {
+  width: 10rem;
 }
 
 .book-detail-modal__info {
