@@ -237,13 +237,32 @@ onUnmounted(() => {
 
 @media (max-width: 600px) {
   .header {
-    flex-direction: column;
     gap: 0.75rem;
-    padding: 1rem;
+    padding: 0.75rem 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  .header__title {
+    font-size: 1.125rem;
   }
 
   .header__welcome {
     display: none;
+  }
+
+  .header__profile-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .header__profile-dropdown {
+    min-width: 13rem;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .header__profile-option {
+    padding: 0.875rem 1rem;
   }
 }
 </style>

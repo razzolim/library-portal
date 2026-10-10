@@ -45,6 +45,7 @@ async function handleLogin(credentials) {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  min-height: 100dvh;
   padding: 1rem;
   background: linear-gradient(
     135deg,
@@ -81,6 +82,17 @@ async function handleLogin(credentials) {
 .login-view__logo {
   display: block;
   margin: 0 auto 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .login-view {
+    align-items: flex-start;
+    padding: 0.75rem;
+  }
+
+  .login-view__card {
+    padding: 1.5rem 1.25rem;
+  }
 }
 
 .login-view__title {
