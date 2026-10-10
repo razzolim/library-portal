@@ -1,6 +1,7 @@
 import client from './client.js'
 import books from '../mocks/books.json'
 import users from '../mocks/users.json'
+import { parseCsv, IMPORT_MAX_BYTES, IMPORT_MAX_ROWS, IMPORT_REQUIRED_COLUMNS, IMPORT_OPTIONAL_COLUMNS } from '../utils/csv.js'
 
 const MOCK_DELAY_MS = 500
 
@@ -86,6 +87,134 @@ export async function createBook(book, { uploadedBy } = {}) {
     const { data } = await client.post('/books', book)
     return data
   } catch (err) {
+    return toErrorResult(err)
+  }
+}
+
+const ISBN_PATTERN = /^(?:\d{9}[\dXx]|\d{13})$/
+const COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/
+
+function isHttpUrl(value) {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+// Mirrors the backend's per-field rules for a CSV row (see BACKEND_API.md).
+function validateImportRow(row, seenIsbns) {
+  const fields = {}
+  const maxYear = new Date().getFullYear() + 1
+  if (!row.title) fields.title = 'required'
+  else if (row.title.length > 255) fields.title = 'too_long'
+  if (!row.author) fields.author = 'required'
+  else if (row.author.length > 255) fields.author = 'too_long'
+  if (!row.status) fields.status = 'required'
+  else if (!['available', 'borrowed'].includes(row.status)) fields.status = 'invalid'
+  if (row.genre && row.genre.length > 100) fields.genre = 'too_long'
+  if (row.year) {
+    if (!/^\d+$/.test(row.year)) fields.year = 'invalid_type'
+    else if (Number(row.year) > maxYear) fields.year = 'out_of_range'
+  }
+  if (row.isbn) {
+    const normalized = row.isbn.replace(/-/g, '')
+    if (!ISBN_PATTERN.test(normalized)) fields.isbn = 'invalid'
+    else if (seenIsbns.has(normalized)) fields.isbn = 'duplicate_in_file'
+    else if (books.some((b) => (b.isbn || '').replace(/-/g, '') === normalized)) fields.isbn = 'duplicate'
+    else seenIsbns.add(normalized)
+  }
+  if (row.pdfUrl && (!isHttpUrl(row.pdfUrl) || row.pdfUrl.length > 2048)) fields.pdfUrl = 'invalid'
+  if (row.summary && row.summary.length > 2000) fields.summary = 'too_long'
+  if (row.coverColor && !COLOR_PATTERN.test(row.coverColor)) fields.coverColor = 'invalid'
+  return fields
+}
+
+function mockImportBooks(csvText, uploadedBy) {
+  const fail = (errorKey, extra = {}) => ({ success: false, errorKey, ...extra })
+
+  if (new Blob([csvText]).size > IMPORT_MAX_BYTES) {
+    return fail('admin.books.import.fileTooLarge', { maxBytes: IMPORT_MAX_BYTES })
+  }
+  const { rows, unterminated } = parseCsv(csvText)
+  if (unterminated || rows.length < 2) return fail('admin.books.import.invalidFile')
+
+  const header = rows[0].cells.map((c) => c.trim())
+  const allowed = [...IMPORT_REQUIRED_COLUMNS, ...IMPORT_OPTIONAL_COLUMNS]
+  const missing = IMPORT_REQUIRED_COLUMNS.filter((c) => !header.includes(c))
+  const unknown = [...new Set(header.filter((c) => !allowed.includes(c)))]
+  const duplicated = [...new Set(header.filter((c, i) => header.indexOf(c) !== i))]
+  if (missing.length || unknown.length || duplicated.length) {
+    return fail('admin.books.import.invalidHeader', { missing, unknown, duplicated })
+  }
+
+  const dataRows = rows.slice(1)
+  if (dataRows.length > IMPORT_MAX_ROWS) {
+    return fail('admin.books.import.tooManyRows', { maxRows: IMPORT_MAX_ROWS })
+  }
+
+  const seenIsbns = new Set()
+  const errors = []
+  const parsed = []
+  for (const { line, cells } of dataRows) {
+    if (cells.length !== header.length) {
+      errors.push({ line, fields: { row: 'column_count_mismatch' } })
+      continue
+    }
+    const row = Object.fromEntries(header.map((name, i) => [name, cells[i].trim()]))
+    const fields = validateImportRow(row, seenIsbns)
+    if (Object.keys(fields).length) errors.push({ line, fields })
+    parsed.push(row)
+  }
+  if (errors.length) {
+    const onlyDuplicates = errors.every(({ fields }) => fields.isbn === 'duplicate' && Object.keys(fields).length === 1)
+    return fail(onlyDuplicates ? 'admin.books.import.duplicateIsbn' : 'admin.books.import.invalidRows', { errors })
+  }
+
+  let nextId = Math.max(0, ...books.map((b) => Number(b.id) || 0))
+  for (const row of parsed) {
+    books.push({
+      id: ++nextId,
+      title: row.title,
+      author: row.author,
+      status: row.status,
+      genre: row.genre || null,
+      year: row.year ? Number(row.year) : null,
+      isbn: row.isbn || null,
+      pdfUrl: row.pdfUrl || null,
+      summary: row.summary || null,
+      coverColor: row.coverColor || '#4a5568',
+      uploadedBy: uploadedBy || null,
+      uploadedAt: new Date().toISOString()
+    })
+  }
+  return { success: true, imported: parsed.length }
+}
+
+/**
+ * Admin: import books from a CSV document (all-or-nothing).
+ * POST /books/import — raw `text/csv` body, requires the `admin` role.
+ * Resolves to `{ success: true, imported }` or `{ success: false, errorKey, ... }`
+ * where the extra fields are the backend's details (`errors`, `missing`,
+ * `unknown`, `duplicated`, `maxRows`, `maxBytes`).
+ * In mock mode, the books are appended to the in-memory list until reload.
+ */
+export async function importBooks(csvText, { uploadedBy } = {}) {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    return mockImportBooks(csvText, uploadedBy)
+  }
+
+  try {
+    const { data } = await client.post('/books/import', csvText, {
+      headers: { 'Content-Type': 'text/csv' },
+      transformRequest: [(body) => body]
+    })
+    return data
+  } catch (err) {
+    const data = err.response?.data
+    if (data?.errorKey) return { ...data, success: false }
     return toErrorResult(err)
   }
 }

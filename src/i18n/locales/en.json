@@ -65,6 +65,10 @@
       "users": {
         "title": "Users",
         "description": "View all users and reset passwords, edit emails, disable, or delete accounts."
+      },
+      "importBooks": {
+        "title": "Import books",
+        "description": "Add many books at once by uploading a CSV file."
       }
     },
     "resetPassword": {
@@ -127,7 +131,72 @@
       "viewBook": "View book",
       "duplicateIsbn": "A book with this ISBN already exists.",
       "invalidFields": "Some fields are invalid. Please review the form.",
-      "error": "Failed to add the book. Please try again."
+      "error": "Failed to add the book. Please try again.",
+      "import": {
+        "fileLabel": "CSV file",
+        "dropTitle": "Drag a CSV file here, or",
+        "browse": "browse your computer",
+        "dropHint": "CSV up to {size} and {rows} books. UTF-8, comma-separated.",
+        "remove": "Remove file",
+        "rowCount": "no books | 1 book found | {count} books found",
+        "allOrNothing": "All-or-nothing: if any row is invalid, no book is imported.",
+        "formatTitle": "CSV format and columns",
+        "formatIntro": "The first row must be a header with these exact, case-sensitive column names, in any order:",
+        "required": "Required",
+        "formatNote": "Empty cells mean \"not provided\". Wrap a cell in double quotes if it contains commas, quotes or line breaks.",
+        "columnHelp": {
+          "title": "1–255 characters.",
+          "author": "1–255 characters.",
+          "status": "available or borrowed.",
+          "genre": "Up to 100 characters.",
+          "year": "Whole number from 0 to next year.",
+          "isbn": "10 or 13 digits, hyphens allowed. Must be unique.",
+          "pdfUrl": "Absolute http(s) URL.",
+          "summary": "Up to 2000 characters.",
+          "coverColor": "Hex color such as #2b6cb0."
+        },
+        "downloadTemplate": "Download template",
+        "submit": "Import books",
+        "importing": "Importing...",
+        "success": "No books were imported. | 1 book was imported. | {count} books were imported.",
+        "viewLibrary": "View library",
+        "problemsTitle": "1 problem found | {count} problems found",
+        "line": "Line",
+        "column": "Column",
+        "problem": "Problem",
+        "moreProblems": "And 1 more problem. Fix the file and try again. | And {count} more problems. Fix the file and try again.",
+        "nothingImported": "Nothing was imported. Fix the problems below and upload the file again.",
+        "codes": {
+          "required": "This value is required.",
+          "too_long": "Too long.",
+          "invalid": "Invalid value.",
+          "invalid_type": "Must be a number.",
+          "out_of_range": "Out of the allowed range.",
+          "duplicate_in_file": "Duplicated ISBN in the file.",
+          "duplicate": "A book with this ISBN already exists.",
+          "column_count_mismatch": "Number of cells does not match the header."
+        },
+        "errors": {
+          "noFile": "Choose a CSV file to import.",
+          "notCsv": "The file must have a .csv extension.",
+          "empty": "The file is empty.",
+          "tooLarge": "The file exceeds the {size} limit.",
+          "unreadable": "The file could not be read.",
+          "noRows": "The file must have a header and at least one book row, with all quotes closed.",
+          "tooManyRows": "The file has {count} books; the limit is {max}.",
+          "missingColumns": "Missing columns: {columns}.",
+          "unknownColumns": "Unknown columns: {columns}.",
+          "duplicatedColumns": "Repeated columns: {columns}."
+        },
+        "invalidFile": "The file is empty, has no book rows, or has an unclosed quote.",
+        "invalidHeader": "The header row is not valid.",
+        "tooManyRows": "The file has too many rows (maximum {max}).",
+        "invalidRows": "Some rows are invalid.",
+        "duplicateIsbn": "Some ISBNs already exist in the library.",
+        "fileTooLarge": "The file is too large (maximum 1 MB).",
+        "unsupportedMediaType": "The file must be sent as CSV.",
+        "error": "Failed to import the books. Please try again."
+      }
     },
     "close": "Close",
     "users": {
@@ -201,7 +270,8 @@
       "sortDefault": "Sort: name (A–Z)",
       "sortLastLoginNewest": "Sort: last login, most recent first",
       "sortLastLoginOldest": "Sort: last login, oldest first"
-    }
+    },
+    "rateLimited": "Too many requests. Please wait a moment and try again."
   },
   "changelog": {
     "title": "Change log",

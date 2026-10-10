@@ -5,7 +5,8 @@ import {
   fetchUsers,
   updateUserEmail,
   setUserEnabled,
-  deleteUser
+  deleteUser,
+  importBooks
 } from '../../../src/api/admin.js'
 import { fetchBooks, authenticate } from '../../../src/api/books.js'
 
@@ -155,5 +156,43 @@ describe('Admin API - user management (mock mode)', () => {
     const { items } = await fetchUsers({ query: 'lmartins' })
 
     expect(Date.parse(items[0].lastLoginAt)).toBeGreaterThanOrEqual(before - 1000)
+  })
+})
+
+describe('importBooks (mock mode)', () => {
+  const header = 'title,author,status,isbn\n'
+
+  it('imports every valid row and exposes the books', async () => {
+    const before = await fetchBooks()
+    const result = await importBooks(`${header}Imp A,Au,available,978-1111111111\nImp B,Au,borrowed,\n`, { uploadedBy: 'admin' })
+
+    expect(result).toEqual({ success: true, imported: 2 })
+    expect(await fetchBooks()).toHaveLength(before.length + 2)
+  })
+
+  it('is all-or-nothing and reports the offending lines', async () => {
+    const before = await fetchBooks()
+    const result = await importBooks(`${header}Ok,Au,available,\n,Au,weird,\n`)
+
+    expect(result.success).toBe(false)
+    expect(result.errorKey).toBe('admin.books.import.invalidRows')
+    expect(result.errors).toEqual([{ line: 3, fields: { title: 'required', status: 'invalid' } }])
+    expect(await fetchBooks()).toHaveLength(before.length)
+  })
+
+  it('rejects ISBNs already in the catalog and repeated in the file', async () => {
+    await importBooks(`${header}Dup,Au,available,978-2222222222\n`)
+    const existing = await importBooks(`${header}Dup2,Au,available,9782222222222\n`)
+    expect(existing.errorKey).toBe('admin.books.import.duplicateIsbn')
+
+    const repeated = await importBooks(`${header}X,Au,available,978-3333333333\nY,Au,available,9783333333333\n`)
+    expect(repeated.errors[0].fields.isbn).toBe('duplicate_in_file')
+  })
+
+  it('rejects bad headers, empty files and too many rows', async () => {
+    expect((await importBooks('title,foo\nx,y\n')).errorKey).toBe('admin.books.import.invalidHeader')
+    expect((await importBooks('')).errorKey).toBe('admin.books.import.invalidFile')
+    const many = header + 'T,A,available,\n'.repeat(501)
+    expect((await importBooks(many)).errorKey).toBe('admin.books.import.tooManyRows')
   })
 })

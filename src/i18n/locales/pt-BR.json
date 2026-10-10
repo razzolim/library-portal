@@ -65,6 +65,10 @@
       "users": {
         "title": "Usuários",
         "description": "Veja todos os usuários e redefina senhas, edite e-mails, desative ou exclua contas."
+      },
+      "importBooks": {
+        "title": "Importar livros",
+        "description": "Adicione vários livros de uma só vez enviando um arquivo CSV."
       }
     },
     "resetPassword": {
@@ -127,7 +131,72 @@
       "viewBook": "Ver livro",
       "duplicateIsbn": "Já existe um livro com este ISBN.",
       "invalidFields": "Alguns campos são inválidos. Revise o formulário.",
-      "error": "Falha ao adicionar o livro. Tente novamente."
+      "error": "Falha ao adicionar o livro. Tente novamente.",
+      "import": {
+        "fileLabel": "Arquivo CSV",
+        "dropTitle": "Arraste um arquivo CSV aqui ou",
+        "browse": "procure no computador",
+        "dropHint": "CSV de até {size} e {rows} livros. UTF-8, separado por vírgulas.",
+        "remove": "Remover arquivo",
+        "rowCount": "nenhum livro | 1 livro encontrado | {count} livros encontrados",
+        "allOrNothing": "Tudo ou nada: se alguma linha for inválida, nenhum livro é importado.",
+        "formatTitle": "Formato do CSV e colunas",
+        "formatIntro": "A primeira linha deve ser um cabeçalho com estes nomes exatos de colunas (diferencia maiúsculas), em qualquer ordem:",
+        "required": "Obrigatório",
+        "formatNote": "Células vazias significam \"não informado\". Coloque a célula entre aspas duplas se ela tiver vírgulas, aspas ou quebras de linha.",
+        "columnHelp": {
+          "title": "1 a 255 caracteres.",
+          "author": "1 a 255 caracteres.",
+          "status": "available ou borrowed.",
+          "genre": "Até 100 caracteres.",
+          "year": "Número inteiro de 0 até o próximo ano.",
+          "isbn": "10 ou 13 dígitos, hífens permitidos. Deve ser único.",
+          "pdfUrl": "URL http(s) absoluta.",
+          "summary": "Até 2000 caracteres.",
+          "coverColor": "Cor hexadecimal, como #2b6cb0."
+        },
+        "downloadTemplate": "Baixar modelo",
+        "submit": "Importar livros",
+        "importing": "Importando...",
+        "success": "Nenhum livro foi importado. | 1 livro foi importado. | {count} livros foram importados.",
+        "viewLibrary": "Ver biblioteca",
+        "problemsTitle": "1 problema encontrado | {count} problemas encontrados",
+        "line": "Linha",
+        "column": "Coluna",
+        "problem": "Problema",
+        "moreProblems": "E mais 1 problema. Corrija o arquivo e tente novamente. | E mais {count} problemas. Corrija o arquivo e tente novamente.",
+        "nothingImported": "Nada foi importado. Corrija os problemas abaixo e envie o arquivo novamente.",
+        "codes": {
+          "required": "Este valor é obrigatório.",
+          "too_long": "Muito longo.",
+          "invalid": "Valor inválido.",
+          "invalid_type": "Deve ser um número.",
+          "out_of_range": "Fora do intervalo permitido.",
+          "duplicate_in_file": "ISBN repetido no arquivo.",
+          "duplicate": "Já existe um livro com este ISBN.",
+          "column_count_mismatch": "O número de células não corresponde ao cabeçalho."
+        },
+        "errors": {
+          "noFile": "Escolha um arquivo CSV para importar.",
+          "notCsv": "O arquivo deve ter a extensão .csv.",
+          "empty": "O arquivo está vazio.",
+          "tooLarge": "O arquivo excede o limite de {size}.",
+          "unreadable": "Não foi possível ler o arquivo.",
+          "noRows": "O arquivo deve ter um cabeçalho e ao menos uma linha de livro, com todas as aspas fechadas.",
+          "tooManyRows": "O arquivo tem {count} livros; o limite é {max}.",
+          "missingColumns": "Colunas ausentes: {columns}.",
+          "unknownColumns": "Colunas desconhecidas: {columns}.",
+          "duplicatedColumns": "Colunas repetidas: {columns}."
+        },
+        "invalidFile": "O arquivo está vazio, não tem linhas de livros ou tem aspas não fechadas.",
+        "invalidHeader": "A linha de cabeçalho não é válida.",
+        "tooManyRows": "O arquivo tem linhas demais (máximo {max}).",
+        "invalidRows": "Algumas linhas são inválidas.",
+        "duplicateIsbn": "Alguns ISBNs já existem na biblioteca.",
+        "fileTooLarge": "O arquivo é grande demais (máximo 1 MB).",
+        "unsupportedMediaType": "O arquivo deve ser enviado como CSV.",
+        "error": "Falha ao importar os livros. Tente novamente."
+      }
     },
     "close": "Fechar",
     "users": {
@@ -201,7 +270,8 @@
       "sortDefault": "Ordenar: nome (A–Z)",
       "sortLastLoginNewest": "Ordenar: último acesso, mais recente primeiro",
       "sortLastLoginOldest": "Ordenar: último acesso, mais antigo primeiro"
-    }
+    },
+    "rateLimited": "Muitas requisições. Aguarde um instante e tente novamente."
   },
   "changelog": {
     "title": "Registro de alterações",

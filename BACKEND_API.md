@@ -233,6 +233,7 @@ Endpoints used by the admin area (`/admin`). All of them require a valid Bearer 
 |---|---|---|
 | `PATCH` | `/admin/users/:username/password` | Reset another user's password. Body: `{ newPassword }`. |
 | `POST` | `/books` | Add a new book. Returns `201` with `{ success, book }`. |
+| `POST` | `/books/import` | Bulk-create books from a CSV. Raw `text/csv` body (≤ 1 MB, ≤ 500 rows), all-or-nothing. Returns `201` with `{ success, imported }`; failures return `errorKey` plus details (`errors`, `missing`, `unknown`, `duplicated`, `maxRows`, `maxBytes`). Full contract: backend `documents/backend-api-specification.md` §3.4. |
 | `GET` | `/admin/users` | List users (`page`, `pageSize`, `query`, optional `sort=lastLoginAt` + `order=asc\|desc`) → `{ items, total, page, pageSize }`. Each user includes `lastLoginAt` (ISO 8601 or `null`). |
 | `PATCH` | `/admin/users/:username` | Edit a user's `email` and/or `enabled` status. |
 | `DELETE` | `/admin/users/:username` | Permanently delete a user. |
