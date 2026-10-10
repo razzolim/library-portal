@@ -34,6 +34,15 @@ vi.mock('../../../src/stores/auth.js', () => ({
   }))
 }))
 
+let mockEnhanced = true
+vi.mock('../../../src/stores/featureFlags.js', () => ({
+  FEATURE_FLAGS: { PDF_ENHANCED: 'pdf_enhanced' },
+  useFeatureFlagsStore: () => ({
+    ensureLoaded: () => Promise.resolve(),
+    isEnabled: (key) => key === 'pdf_enhanced' && mockEnhanced
+  })
+}))
+
 vi.mock('vue-router', () => ({
   useRouter: () => mockRouter,
   useRoute: () => ({})
@@ -51,6 +60,7 @@ function mountModal(props = {}) {
 describe('BookDetailModal', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockEnhanced = true
     mockResolve.mockReturnValue({ href: '/library/1/read' })
   })
 
@@ -111,6 +121,29 @@ describe('BookDetailModal', () => {
     const wrapper = mountModal()
     await flushPromises()
 
+    expect(wrapper.find('.book-detail-modal__read-button').exists()).toBe(true)
+  })
+
+  it('renders a read online button for a backend PDF proxy URL', async () => {
+    fetchBookById.mockResolvedValue({ ...book, pdfUrl: '/api/books/1/pdf' })
+
+    const wrapper = mountModal()
+    await flushPromises()
+
+    expect(wrapper.find('.book-detail-modal__read-button').exists()).toBe(true)
+  })
+
+  it('with the pdf_enhanced flag off, only Drive links get a read online button', async () => {
+    mockEnhanced = false
+
+    fetchBookById.mockResolvedValue({ ...book, pdfUrl: '/api/books/1/pdf' })
+    let wrapper = mountModal()
+    await flushPromises()
+    expect(wrapper.find('.book-detail-modal__read-button').exists()).toBe(false)
+
+    fetchBookById.mockResolvedValue(book)
+    wrapper = mountModal()
+    await flushPromises()
     expect(wrapper.find('.book-detail-modal__read-button').exists()).toBe(true)
   })
 

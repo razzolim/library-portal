@@ -7,6 +7,8 @@ import {
   estimateTimeLeft,
   percentRead,
   resolvePdfUrl,
+  isReadablePdfUrl,
+  getPdfJsUrl,
   loadOutline,
   searchPdf
 } from '../../../src/utils/pdf.js'
@@ -121,5 +123,48 @@ describe('searchPdf', () => {
 
   it('stops when cancelled', async () => {
     expect(await searchPdf(pdf, 'world', () => true)).toEqual([])
+  })
+})
+
+describe('isReadablePdfUrl', () => {
+  it('accepts Drive links, http(s) URLs and API paths', () => {
+    expect(isReadablePdfUrl('https://drive.google.com/file/d/abc123/view')).toBe(true)
+    expect(isReadablePdfUrl('https://api.example.com/api/books/1/pdf')).toBe(true)
+    expect(isReadablePdfUrl('/api/books/1/pdf')).toBe(true)
+  })
+
+  it('rejects empty and malformed values', () => {
+    expect(isReadablePdfUrl(null)).toBe(false)
+    expect(isReadablePdfUrl('')).toBe(false)
+    expect(isReadablePdfUrl('not-a-drive-url')).toBe(false)
+  })
+})
+
+describe('getPdfJsUrl', () => {
+  const real = { useMock: false, apiBaseUrl: 'https://api.test/api', portalBaseUrl: 'http://localhost:5173/' }
+  const mock = { ...real, useMock: true }
+  const drive = { id: 12, pdfUrl: 'https://drive.google.com/file/d/abc123/view' }
+
+  it('reads Drive books through the backend proxy, so pdfUrl need not change', () => {
+    expect(getPdfJsUrl(drive, real)).toBe('https://api.test/api/books/12/pdf')
+  })
+
+  it('keeps Drive books in the Drive preview in mock mode (no proxy)', () => {
+    expect(getPdfJsUrl(drive, mock)).toBeNull()
+  })
+
+  it('uses a proxy path as given, resolved against the API', () => {
+    expect(getPdfJsUrl({ id: 1, pdfUrl: '/api/books/1/pdf' }, real)).toBe('https://api.test/api/books/1/pdf')
+  })
+
+  it('resolves portal files against the portal origin in mock mode', () => {
+    expect(getPdfJsUrl({ id: 13, pdfUrl: '/samples/sample-book.pdf' }, mock)).toBe(
+      'http://localhost:5173/samples/sample-book.pdf'
+    )
+  })
+
+  it('returns null without a readable pdfUrl', () => {
+    expect(getPdfJsUrl({ id: 1, pdfUrl: null }, real)).toBeNull()
+    expect(getPdfJsUrl({ id: 1, pdfUrl: 'nope' }, real)).toBeNull()
   })
 })

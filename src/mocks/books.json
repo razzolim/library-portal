@@ -1,5 +1,19 @@
 [
   {
+    "id": 13,
+    "title": "Reader Demo: A Sample Book",
+    "author": "Library Portal",
+    "year": 2026,
+    "genre": "Demo",
+    "status": "available",
+    "isbn": "978-0000000013",
+    "coverColor": "#2b6cb0",
+    "summary": "A short PDF served by the portal itself so the new reader (contents, bookmarks, search, zoom, dark page, resume) can be tried in mock mode.",
+    "pdfUrl": "/samples/sample-book.pdf",
+    "uploadedBy": "lib-admin",
+    "uploadedAt": "2026-10-10T12:00:00.000Z"
+  },
+  {
     "id": 1,
     "title": "The Pragmatic Programmer",
     "author": "Andrew Hunt & David Thomas",

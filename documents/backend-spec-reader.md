@@ -10,7 +10,7 @@ This document defines everything the backend must provide for the **book reader*
 
 | Phase | Frontend | Backend work |
 |---|---|---|
-| **A. Reader bar** (done in the frontend) | Slim portal bar (back, title, reload, full screen, close) above the Drive iframe, with real load-failure detection. | **None required.** Optional: §1 (proxy URL in `pdfUrl`). |
+| **A. Reader bar** (done in the frontend, behind `pdf_enhanced`) | Slim portal bar (back, title, reload, full screen, close) above the Drive iframe, with real load-failure detection. | **None required.** Optional: §1 (proxy URL in `pdfUrl`). |
 | **B. Own viewer (PDF.js)** | The portal renders the PDF itself: page navigation, zoom, outline, search, dark page mode, resume. | §1 PDF streaming, §2 reading progress, §3 bookmarks, §4 reader preferences, §5 book fields. |
 | **C. Mobile reader** | Same viewer, touch gestures and a bottom control sheet. | Nothing new. Needs §1 range requests to be fast on slow connections. |
 
@@ -86,10 +86,10 @@ Access-Control-Expose-Headers: Accept-Ranges, Content-Range, Content-Length, ETa
 | `404` | `{ "success": false, "errorKey": "reader.noPdf" }` | Book exists but has no PDF. |
 | `502` | `{ "success": false, "errorKey": "reader.sourceUnavailable" }` | The storage behind the proxy failed (e.g. Drive quota or outage). Do not leak upstream error text or URLs. |
 
-### `pdfUrl` during the transition
-Keep the existing contract: `pdfUrl` is what the frontend loads. When the proxy exists, return it as a **relative or absolute URL to this endpoint** (`/api/books/12/pdf`) instead of the Drive link. A relative URL is resolved against the API base URL (`VITE_API_BASE_URL`), so `/api/books/12/pdf` and a base of `https://host/api` give `https://host/api/books/12/pdf`. The frontend sends the Bearer token itself, so the URL needs no signature. Books without a PDF keep `pdfUrl: null`.
+### `pdfUrl` and the `pdf_enhanced` flag
+The in-app reader is behind the feature flag `pdf_enhanced` (see [`backend-spec-admin-feature-flags.md`](./backend-spec-admin-feature-flags.md)). With the flag **on**, the frontend loads `GET /books/:id/pdf` directly for any book that has a `pdfUrl`, **including books whose `pdfUrl` is still a Google Drive link**, because the proxy understands Drive links. So `pdfUrl` does **not** need to change to the proxy URL: keep returning the stored link. If `pdfUrl` is a proxy URL (absolute, or a path resolved against the API base URL), the frontend uses it as given.
 
-> The frontend picks the viewer from `pdfUrl`: a Google Drive link opens the Drive iframe (phase A reader); any other URL opens the pdf.js reader (phase B) with the user's Bearer token. A book can therefore be migrated one at a time.
+With the flag **off**, the frontend shows the original reader (Drive preview in an iframe) and does not call any endpoint in this document.
 
 ### Protection
 This is a deterrent, not DRM; anyone who can read the PDF can save it.

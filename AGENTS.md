@@ -45,10 +45,12 @@ library-portal/
     ├── App.vue                 # Root layout
     ├── router/index.js         # Routes and auth guard
     ├── stores/auth.js          # Pinia auth store
+    ├── stores/featureFlags.js  # Pinia feature flag values (FEATURE_FLAGS keys, isEnabled)
     ├── api/
     │   ├── client.js           # Axios client with env-based baseURL + 401 handler
     │   ├── books.js            # API functions for auth and books (mock or real)
     │   ├── admin.js            # Admin-only API functions (reset user password, create book)
+    │   ├── featureFlags.js     # Feature flag values (reads GET /admin/feature-flags; any signed-in user)
     │   ├── reader.js           # Reading progress, bookmarks, reader preferences (mock or real)
     │   └── changelog.js        # API function for the change log (mock or real)
     ├── i18n/
@@ -74,7 +76,8 @@ library-portal/
     │   ├── BookCard.vue
     │   ├── BookCover.vue       # Real cover image, or a printed cover in the book's color
     │   ├── BookDetailModal.vue
-    │   ├── BookPdfViewer.vue   # Drive iframe reader
+    │   ├── BookPdfViewer.vue   # Drive iframe reader under the reader bar (flag pdf_enhanced on)
+    │   ├── BookPdfViewerLegacy.vue # Original reader (flag off)
     │   ├── PdfReader.vue       # pdf.js reader (backend PDF proxy)
     │   ├── reader/             # ReaderBar, ReaderSidebar, ReaderControls
     │   ├── ChangeLog.vue
@@ -174,7 +177,7 @@ baseURL: http://localhost:3000/api
   - `/admin/users/reset-password` (`admin-reset-password`) — reset another user's password.
   - `/admin/books/new` (`admin-add-book`) — add a book.
   - `/admin/books/import` (`admin-import-books`) — import books from a CSV file (drag & drop or browse, client-side pre-checks, downloadable template, row-level error report).
-  - `/admin/feature-flags` (`admin-feature-flags`) — list, create, toggle on/off, and delete feature flags (group `system`). Management only; nothing in the portal reads the flags yet. API in `src/api/admin.js` (`fetchFeatureFlags`, `createFeatureFlag`, `setFeatureFlagEnabled`, `deleteFeatureFlag`); mock seed in `src/mocks/featureFlags.json`; spec in `documents/backend-spec-admin-feature-flags.md`.
+  - `/admin/feature-flags` (`admin-feature-flags`) — list, create, toggle on/off, and delete feature flags (group `system`). The portal also reads flag values from this list endpoint (`src/api/featureFlags.js`, `src/stores/featureFlags.js`). API in `src/api/admin.js` (`fetchFeatureFlags`, `createFeatureFlag`, `setFeatureFlagEnabled`, `deleteFeatureFlag`); mock seed in `src/mocks/featureFlags.json`; spec in `documents/backend-spec-admin-feature-flags.md`.
   - Non-admins are redirected to `/library`. Child routes inherit `requiresAdmin` through the merged `to.meta`.
 - Any unknown route redirects to `/login`.
 
@@ -215,9 +218,12 @@ baseURL: http://localhost:3000/api
 - The `pdfUrl` returned in book data should be an embeddable URL. In the current mock data it is a Google Drive share link, which `src/utils/drive.js` converts to the Google Drive `/preview` URL.
 - A future backend proxy will replace the raw Google Drive link with a proxy URL, keeping the original Drive URL hidden from the browser. The `pdfUrl` contract stays the same: the frontend receives an embeddable URL and loads it in the `BookPdfViewer` iframe.
 - The reader is displayed on a dedicated route (`/library/:id/read`) that opens in a new browser tab when the user clicks **Read online** on the book detail modal.
-- `BookPdfView` picks the viewer from the book's `pdfUrl`:
-  - **Google Drive link** → `BookPdfViewer.vue`: the Drive `/preview` iframe under a slim bar. It sets `document.title` to the book and shows a retry panel if the iframe's `load` never arrives within 20 s. No progress, search or bookmarks are possible here (the iframe can't report the page).
-  - **Anything else** (the backend PDF proxy, absolute or relative to the API base URL, e.g. `/api/books/12/pdf`) → `PdfReader.vue`: our own pdf.js viewer. Mock mode has only Drive links, so it always shows the iframe viewer; point `VITE_USE_MOCK_API=false` at a backend (or a fake one) to see the pdf.js reader.
+- **Feature flag `pdf_enhanced`** gates everything below. Read it with `useFeatureFlagsStore().isEnabled(FEATURE_FLAGS.PDF_ENHANCED)` after `await flags.ensureLoaded()` (`BookPdfView` and `BookDetailModal` do). Flags come from the existing `GET /admin/feature-flags` (cached ~30 s; mock mode reads the admin mock list live, for every role). That endpoint must be readable by **any signed-in user** (only create/toggle/delete are admin-only); it is specified that way in `documents/backend-spec-admin-feature-flags.md`. If the request fails, e.g. a 403 from a backend that hasn't opened it yet, every flag reads as **off**. Unknown flags and load failures read as **off**.
+- **Flag off:** the original reader, unchanged: `BookPdfViewerLegacy.vue` (Drive `/preview` iframe in a full-screen overlay, × button, Esc closes). **Read online** shows only for Drive links.
+- **Flag on** (`BookPdfView` picks the viewer):
+  - **PDF.js reader** (`PdfReader.vue`) when `getPdfJsUrl()` returns a URL. With the real backend, any book with a readable `pdfUrl` loads `GET /books/:id/pdf` (the proxy understands Drive links, so `pdfUrl` need not change); non-Drive URLs are used as given. In mock mode, Drive links can't be proxied, so they fall through to the next case, and portal files such as book 13's `/samples/sample-book.pdf` open here.
+  - **`BookPdfViewer.vue`**: the Drive `/preview` iframe under the reader bar. It sets `document.title` to the book and shows a retry panel if the iframe's `load` never arrives within 20 s. No progress, search or bookmarks are possible here (the iframe can't report the page).
+  - **Read online** shows for Drive links, `http(s)` URLs and API paths (`isReadablePdfUrl`).
 - Both viewers share `reader/ReaderBar.vue` (back, cover, title/author, reload, full screen, close) and `useFullscreen`. `PdfReader` adds `reader/ReaderSidebar.vue` (contents, bookmarks, search) and `reader/ReaderControls.vue` (pages, slider, % and time left, zoom, dark page).
 - pdf.js is loaded on demand from `src/utils/pdf.js` (`openPdf`, `loadOutline`, `searchPdf`, zoom/page helpers); its worker is a separate chunk. Tests mock `openPdf`; don't import `pdfjs-dist` at the top of a module that tests load.
 - Reader data goes through `src/api/reader.js` (progress, bookmarks, reader preferences; in-memory mock branch). Progress saves are debounced (2.5 s) and flushed on tab hide/close with `fetch(..., { keepalive: true })`. Reader preferences (`pageTheme`, `zoom`) live on `useAuthStore().readerPreferences` and are saved with `PATCH /me`.

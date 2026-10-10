@@ -72,6 +72,8 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
 import { fetchBookById } from '../api/books.js'
 import { getDrivePreviewUrl } from '../utils/drive.js'
+import { isReadablePdfUrl } from '../utils/pdf.js'
+import { useFeatureFlagsStore, FEATURE_FLAGS } from '../stores/featureFlags.js'
 import { formatDate } from '../utils/date.js'
 import { getCurrentLocale } from '../i18n/index.js'
 import LoadingSpinner from './LoadingSpinner.vue'
@@ -89,6 +91,7 @@ const emit = defineEmits(['close'])
 const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
+const flags = useFeatureFlagsStore()
 
 const book = ref(null)
 const isLoading = ref(false)
@@ -98,14 +101,15 @@ const bookId = computed(() => {
   return typeof props.bookId === 'string' ? parseInt(props.bookId, 10) : props.bookId
 })
 
-const previewUrl = computed(() => {
-  if (!book.value?.pdfUrl) {
-    return null
+// Flag pdf_enhanced: the in-app reader accepts Drive links, backend URLs and API paths.
+// Flag off: only Drive links, as before.
+const hasPdf = computed(() => {
+  const pdfUrl = book.value?.pdfUrl
+  if (flags.isEnabled(FEATURE_FLAGS.PDF_ENHANCED)) {
+    return isReadablePdfUrl(pdfUrl)
   }
-  return getDrivePreviewUrl(book.value.pdfUrl)
+  return Boolean(pdfUrl && getDrivePreviewUrl(pdfUrl))
 })
-
-const hasPdf = computed(() => Boolean(previewUrl.value))
 
 const statusLabel = computed(() => {
   if (!book.value) return ''
@@ -134,7 +138,7 @@ function handleClose() {
 }
 
 function openPdfInNewTab() {
-  if (!bookId.value || !previewUrl.value) {
+  if (!bookId.value || !hasPdf.value) {
     return
   }
 
@@ -165,7 +169,9 @@ async function loadBook() {
   error.value = null
 
   try {
-    book.value = await fetchBookById(bookId.value)
+    // The Read online button depends on the pdf_enhanced flag, so load it with the book.
+    const [loadedBook] = await Promise.all([fetchBookById(bookId.value), flags.ensureLoaded()])
+    book.value = loadedBook
     if (!book.value) {
       error.value = t('bookDetail.notFound')
     }

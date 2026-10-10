@@ -137,6 +137,17 @@ export async function searchPdf(pdf, query, isCancelled = () => false) {
   return results
 }
 
+const DRIVE_LINK = /\/file\/d\/[a-zA-Z0-9_-]+/
+
+/**
+ * Whether a book's `pdfUrl` is something a reader can open: a Google Drive
+ * link, an http(s) URL, or a path on the API host (the backend PDF proxy).
+ */
+export function isReadablePdfUrl(url) {
+  if (!url || typeof url !== 'string') return false
+  return DRIVE_LINK.test(url) || /^https?:\/\//i.test(url) || url.startsWith('/')
+}
+
 /**
  * Where the reader should load the PDF from.
  * Relative URLs (`/api/books/12/pdf`) resolve against the API base URL.
@@ -147,4 +158,24 @@ export function resolvePdfUrl(pdfUrl, apiBaseUrl) {
   } catch (err) {
     return null
   }
+}
+
+/**
+ * URL the in-app (pdf.js) reader should load for a book, or null when the book
+ * can only be shown in the Google Drive preview.
+ *
+ * - Drive link: the backend proxy `GET /books/:id/pdf` serves it (the proxy
+ *   understands Drive links), so the frontend does not need `pdfUrl` to change.
+ *   Mock mode has no proxy, so Drive links stay in the iframe viewer.
+ * - Other URL (absolute, or a path): used as given. Paths resolve against the
+ *   API base URL, or against the portal's own origin in mock mode.
+ */
+export function getPdfJsUrl(book, { useMock, apiBaseUrl, portalBaseUrl }) {
+  const pdfUrl = book?.pdfUrl
+  if (!isReadablePdfUrl(pdfUrl)) return null
+
+  if (DRIVE_LINK.test(pdfUrl)) {
+    return useMock ? null : `${apiBaseUrl}/books/${book.id}/pdf`
+  }
+  return resolvePdfUrl(pdfUrl, useMock ? portalBaseUrl : apiBaseUrl)
 }

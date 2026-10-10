@@ -391,6 +391,14 @@ export async function deleteUser(username, { actor } = {}) {
 // Mutable copy so mock edits never touch the imported seed.
 const featureFlags = featureFlagsSeed.map((flag) => ({ ...flag }))
 
+/**
+ * Mock-mode source for the portal's own flag reads (src/api/featureFlags.js),
+ * so toggling a flag in the admin area is reflected by the rest of the portal.
+ */
+export function getMockFeatureFlagValues() {
+  return featureFlags.map(({ key, enabled }) => ({ key, enabled }))
+}
+
 /** Flag keys: lowercase letters, digits, `-` and `_`; start with a letter; 2-64 chars. */
 export const FEATURE_FLAG_KEY_PATTERN = /^[a-z][a-z0-9_-]{1,63}$/
 

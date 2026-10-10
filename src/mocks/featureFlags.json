@@ -1,5 +1,12 @@
 [
   {
+    "key": "pdf_enhanced",
+    "description": "Enhanced book reader: reader bar, in-app PDF viewer with progress, bookmarks and search, and the mobile layout.",
+    "enabled": true,
+    "updatedAt": "2026-10-10T12:00:00Z",
+    "updatedBy": "admin"
+  },
+  {
     "key": "pdf-reader-v2",
     "description": "Use the new in-app PDF reader instead of the embedded viewer.",
     "enabled": true,
