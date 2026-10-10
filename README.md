@@ -91,7 +91,8 @@ library-portal/
     │   ├── LoginForm.vue      # Reusable login form
     │   ├── BookCard.vue       # Book card component
     │   ├── BookDetailModal.vue # Book detail modal
-    │   ├── BookPdfViewer.vue  # Full-screen PDF viewer overlay
+    │   ├── BookPdfViewer.vue  # Reader for Google Drive links (iframe under a slim bar)
+    │   ├── PdfReader.vue      # Reader for backend PDF URLs (pdf.js: pages, search, bookmarks, resume)
     │   ├── LoadingSpinner.vue # Loading indicator
     │   ├── LanguageSwitcher.vue # Language selector (used in the account page)
     │   ├── PaginationControls.vue # Pagination bar
@@ -239,7 +240,7 @@ The portal uses Vite's built-in `.env` support. Environment variables that need 
    - Use the **Previous** / **Next** buttons to navigate pages.
    - Books show their status: **Available** or **Borrowed**.
    - Click a book card to open its detail modal.
-6. On the book detail modal, click **Read online** (if available) to open the PDF reader in a new browser tab. The reader uses Google Drive preview mode, which hides the standard download button.
+6. On the book detail modal, click **Read online** (if available) to open the PDF reader in a new browser tab. Books with a Google Drive link open in the Drive preview; books served by the backend PDF proxy open in the portal's own reader, which remembers where you stopped and supports contents, bookmarks, search, zoom and a dark page.
 7. Click the **profile icon** in the header to open the user menu. Choose **My account** to view your profile and change the language, or choose **Logout** to return to the login page.
 8. The language switcher is now on the **Account** page.
 9. Click the **Change log** link in the footer to view all portal updates.
@@ -337,7 +338,7 @@ The `pdfUrl` field in the book response should be a URL that the browser can emb
 
 When a user clicks **Read online** on the book detail modal, the frontend opens the dedicated route `/library/:id/read` in a new browser tab. That route renders the full-screen PDF reader. This keeps the book detail modal open while the user reads the file in a separate tab.
 
-When the backend proxy is implemented, the backend should return its own proxy URL in `pdfUrl` instead, keeping the original Google Drive URL hidden from the browser.
+When the backend proxy is implemented, the backend should return its own proxy URL in `pdfUrl` instead (absolute, or relative to the API base URL). The frontend then uses its own pdf.js reader for that URL; see `documents/backend-spec-reader.md`.
 
 ### Change log endpoint
 

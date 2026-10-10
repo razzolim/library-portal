@@ -4,9 +4,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { createPinia } from 'pinia'
 import { createTestI18n } from '../../test-utils.js'
 import AdminImportBooksView from '../../../../src/views/admin/AdminImportBooksView.vue'
-import { importBooks } from '../../../../src/api/admin.js'
+import { importBooks, exportBooks } from '../../../../src/api/admin.js'
 
-vi.mock('../../../../src/api/admin.js', () => ({ importBooks: vi.fn() }))
+vi.mock('../../../../src/api/admin.js', () => ({ importBooks: vi.fn(), exportBooks: vi.fn() }))
 
 const VALID = 'title,author,status\nA,B,available\nC,D,borrowed\n'
 
@@ -102,5 +102,31 @@ describe('AdminImportBooksView', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('Failed to import the books.')
+  })
+
+  it('downloads the CSV returned by the backend', async () => {
+    const blob = new Blob(['title,author,status\r\n'], { type: 'text/csv' })
+    exportBooks.mockResolvedValue({ success: true, blob })
+    URL.createObjectURL = vi.fn(() => 'blob:x')
+    URL.revokeObjectURL = vi.fn()
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    const wrapper = mountView()
+    await wrapper.find('.admin-import__export button').trigger('click')
+    await flushPromises()
+
+    expect(URL.createObjectURL).toHaveBeenCalledWith(blob)
+    expect(click).toHaveBeenCalled()
+    expect(wrapper.find('.admin-import__export-message').text()).toBe('The export was downloaded.')
+    click.mockRestore()
+  })
+
+  it('reports an export failure', async () => {
+    exportBooks.mockResolvedValue({ success: false, errorKey: 'admin.rateLimited' })
+    const wrapper = mountView()
+    await wrapper.find('.admin-import__export button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.admin-import__export-message').text()).toContain('Too many requests')
   })
 })

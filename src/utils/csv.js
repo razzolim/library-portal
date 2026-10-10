@@ -85,3 +85,28 @@ export function inspectBooksCsv(text) {
     unterminated
   }
 }
+
+const EXPORT_COLUMNS = [...IMPORT_REQUIRED_COLUMNS, ...IMPORT_OPTIONAL_COLUMNS]
+
+// Cells starting with these characters can run as formulas when opened in a
+// spreadsheet, so they are prefixed with an apostrophe.
+const FORMULA_START = /^[=+\-@\t\r]/
+
+function toCsvCell(value) {
+  if (value === null || value === undefined) return ''
+  let text = String(value)
+  if (FORMULA_START.test(text) && !/^-?\d+(\.\d+)?$/.test(text)) text = `'${text}`
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
+}
+
+/**
+ * Serializes books to CSV using the same columns as the import template, so an
+ * exported file can be imported again. Missing values become empty cells.
+ */
+export function booksToCsv(books) {
+  const lines = [EXPORT_COLUMNS.join(',')]
+  for (const book of books) {
+    lines.push(EXPORT_COLUMNS.map((column) => toCsvCell(book[column])).join(','))
+  }
+  return lines.join('\r\n') + '\r\n'
+}

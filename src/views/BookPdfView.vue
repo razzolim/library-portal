@@ -6,9 +6,21 @@
       {{ error }}
     </div>
 
+    <!-- Backend PDF proxy: our own viewer (pages, progress, bookmarks, search). -->
+    <PdfReader
+      v-else-if="pdfJsUrl"
+      :book="book"
+      :pdf-url="pdfJsUrl"
+      @back="handleBack"
+      @close="handleClose"
+    />
+
+    <!-- Google Drive link: embedded Drive preview. -->
     <BookPdfViewer
       v-else-if="previewUrl"
       :preview-url="previewUrl"
+      :book="book"
+      @back="handleBack"
       @close="handleClose"
     />
 
@@ -20,15 +32,19 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { fetchBookById } from '../api/books.js'
 import { getDrivePreviewUrl } from '../utils/drive.js'
+import { resolvePdfUrl } from '../utils/pdf.js'
+import client from '../api/client.js'
 import BookPdfViewer from '../components/BookPdfViewer.vue'
+import PdfReader from '../components/PdfReader.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 
 const book = ref(null)
 const isLoading = ref(false)
@@ -46,8 +62,28 @@ const previewUrl = computed(() => {
   return getDrivePreviewUrl(book.value.pdfUrl)
 })
 
+// Anything that is not a Drive link is the backend's PDF proxy (absolute, or
+// relative to the API base URL), which our own viewer can read.
+const pdfJsUrl = computed(() => {
+  if (!book.value?.pdfUrl || previewUrl.value) {
+    return null
+  }
+  return resolvePdfUrl(book.value.pdfUrl, client.defaults.baseURL)
+})
+
+function handleBack() {
+  router.push({ name: 'book-detail', params: { id: bookId.value } })
+}
+
+// window.close() is ignored when the tab wasn't opened by the portal (e.g. a
+// pasted link), so fall back to the library instead of leaving the button dead.
 function handleClose() {
   window.close()
+  setTimeout(() => {
+    if (!window.closed) {
+      router.push({ name: 'library' })
+    }
+  }, 150)
 }
 
 async function loadBook() {

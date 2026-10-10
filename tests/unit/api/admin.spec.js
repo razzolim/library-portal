@@ -6,7 +6,8 @@ import {
   updateUserEmail,
   setUserEnabled,
   deleteUser,
-  importBooks
+  importBooks,
+  exportBooks
 } from '../../../src/api/admin.js'
 import { fetchBooks, authenticate } from '../../../src/api/books.js'
 
@@ -194,5 +195,22 @@ describe('importBooks (mock mode)', () => {
     expect((await importBooks('')).errorKey).toBe('admin.books.import.invalidFile')
     const many = header + 'T,A,available,\n'.repeat(501)
     expect((await importBooks(many)).errorKey).toBe('admin.books.import.tooManyRows')
+  })
+})
+
+describe('exportBooks (mock mode)', () => {
+  it('returns a CSV blob with every book', async () => {
+    const books = await fetchBooks()
+    const result = await exportBooks()
+
+    expect(result.success).toBe(true)
+    const text = await new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.readAsText(result.blob)
+    })
+    expect(text.replace(/^\uFEFF/, '').startsWith('title,author,status')).toBe(true)
+    expect(text.trim().split(/\r\n(?=[^\r\n]*,)/).length).toBeGreaterThan(0)
+    expect(text).toContain(books[0].title)
   })
 })

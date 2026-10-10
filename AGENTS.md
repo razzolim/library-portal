@@ -36,7 +36,9 @@ library-portal/
 ├── README.md                   # Human-readable documentation
 ├── BACKEND_API.md              # Backend API contract
 ├── documents/backend-spec-admin.md # Backend spec: admin authorization, reset password, add book
+├── documents/backend-spec-admin-books-export.md # Backend spec: export all books as CSV
 ├── documents/backend-spec-admin-users.md # Backend spec: admin user list, edit email, disable, delete
+├── documents/backend-spec-reader.md # Backend spec: PDF streaming, reading progress, bookmarks, reader preferences
 ├── AGENTS.md                   # This file
 └── src/
     ├── main.js                 # App bootstrap
@@ -47,6 +49,7 @@ library-portal/
     │   ├── client.js           # Axios client with env-based baseURL + 401 handler
     │   ├── books.js            # API functions for auth and books (mock or real)
     │   ├── admin.js            # Admin-only API functions (reset user password, create book)
+    │   ├── reader.js           # Reading progress, bookmarks, reader preferences (mock or real)
     │   └── changelog.js        # API function for the change log (mock or real)
     ├── i18n/
     │   ├── index.js            # i18n setup, locale helpers, and availableLocales
@@ -71,7 +74,9 @@ library-portal/
     │   ├── BookCard.vue
     │   ├── BookCover.vue       # Real cover image, or a printed cover in the book's color
     │   ├── BookDetailModal.vue
-    │   ├── BookPdfViewer.vue
+    │   ├── BookPdfViewer.vue   # Drive iframe reader
+    │   ├── PdfReader.vue       # pdf.js reader (backend PDF proxy)
+    │   ├── reader/             # ReaderBar, ReaderSidebar, ReaderControls
     │   ├── ChangeLog.vue
     │   ├── LanguageSwitcher.vue
     │   ├── LoadingSpinner.vue
@@ -187,6 +192,7 @@ baseURL: http://localhost:3000/api
 - A disabled account is rejected at login with `errorKey: 'login.accountDisabled'`. Users cannot disable or delete themselves (UI and backend).
 - Destructive actions (e.g. password reset) use an inline two-step confirmation before calling the API.
 - CSV import: `importBooks(csvText)` in `src/api/admin.js` posts the raw text as `text/csv` (all-or-nothing). CSV parsing, limits and the template live in `src/utils/csv.js`. Failures resolve to `{ success: false, errorKey, ...details }` (`errors`, `missing`, `unknown`, `duplicated`, `maxRows`); the view maps them to `admin.books.import.*` messages and a line/column table. The mock validates the same rules and appends to the in-memory books.
+- CSV export: the import page has an **Export all books** button. `exportBooks()` in `src/api/admin.js` calls `GET /books/export` (`responseType: 'blob'`, admin only) and the view saves the returned file. Mock mode builds the CSV from the in-memory books with `booksToCsv()` in `src/utils/csv.js`. The backend contract is in `documents/backend-spec-admin-books-export.md`.
 - In mock mode, `createBook()` appends to the in-memory book list (visible until reload), and `resetUserPassword()` only validates the username without changing the mock data. User edits (email, enabled) and deletes mutate the in-memory `users.json` array until reload; because `authenticate()` reads the same array, disabling or deleting a mock user affects login too.
 
 ### Change log
@@ -208,6 +214,15 @@ baseURL: http://localhost:3000/api
 - The `pdfUrl` returned in book data should be an embeddable URL. In the current mock data it is a Google Drive share link, which `src/utils/drive.js` converts to the Google Drive `/preview` URL.
 - A future backend proxy will replace the raw Google Drive link with a proxy URL, keeping the original Drive URL hidden from the browser. The `pdfUrl` contract stays the same: the frontend receives an embeddable URL and loads it in the `BookPdfViewer` iframe.
 - The reader is displayed on a dedicated route (`/library/:id/read`) that opens in a new browser tab when the user clicks **Read online** on the book detail modal.
+- `BookPdfView` picks the viewer from the book's `pdfUrl`:
+  - **Google Drive link** → `BookPdfViewer.vue`: the Drive `/preview` iframe under a slim bar. It sets `document.title` to the book and shows a retry panel if the iframe's `load` never arrives within 20 s. No progress, search or bookmarks are possible here (the iframe can't report the page).
+  - **Anything else** (the backend PDF proxy, absolute or relative to the API base URL, e.g. `/api/books/12/pdf`) → `PdfReader.vue`: our own pdf.js viewer. Mock mode has only Drive links, so it always shows the iframe viewer; point `VITE_USE_MOCK_API=false` at a backend (or a fake one) to see the pdf.js reader.
+- Both viewers share `reader/ReaderBar.vue` (back, cover, title/author, reload, full screen, close) and `useFullscreen`. `PdfReader` adds `reader/ReaderSidebar.vue` (contents, bookmarks, search) and `reader/ReaderControls.vue` (pages, slider, % and time left, zoom, dark page).
+- pdf.js is loaded on demand from `src/utils/pdf.js` (`openPdf`, `loadOutline`, `searchPdf`, zoom/page helpers); its worker is a separate chunk. Tests mock `openPdf`; don't import `pdfjs-dist` at the top of a module that tests load.
+- Reader data goes through `src/api/reader.js` (progress, bookmarks, reader preferences; in-memory mock branch). Progress saves are debounced (2.5 s) and flushed on tab hide/close with `fetch(..., { keepalive: true })`. Reader preferences (`pageTheme`, `zoom`) live on `useAuthStore().readerPreferences` and are saved with `PATCH /me`.
+- Phones (`max-width: 720px`): the page fills the screen, the bars float and hide after ~3.5 s, tapping the middle toggles them, tapping the left/right quarter or swiping turns pages, pinch zooms, and the panel is a bottom sheet.
+- **Close** calls `window.close()` and falls back to `/library` if the tab stays open (e.g. a pasted link). **Back** goes to `/library/:id` in the same tab. Esc only closes the side panel, never the reader. Do not reintroduce an Escape-closes-the-tab handler or a global `contextmenu` block.
+- Backend contract for all of this: `documents/backend-spec-reader.md`.
 
 ### Styling
 
