@@ -143,7 +143,8 @@
         "email": "E-mail",
         "role": "Função",
         "status": "Status",
-        "actions": "Ações"
+        "actions": "Ações",
+        "lastLogin": "Último acesso"
       },
       "roles": {
         "reader": "Leitor",
@@ -192,7 +193,14 @@
         "cannotModifySelf": "Você não pode desativar nem excluir a sua própria conta.",
         "lastAdmin": "Este é o último administrador ativo e não pode ser desativado nem excluído.",
         "generic": "Algo deu errado. Tente novamente."
-      }
+      },
+      "neverSignedIn": "Nunca acessou",
+      "sortNewestFirst": "Ordenar pelo acesso mais recente primeiro",
+      "sortOldestFirst": "Ordenar pelo acesso mais antigo primeiro",
+      "sortLabel": "Ordenar usuários",
+      "sortDefault": "Ordenar: nome (A–Z)",
+      "sortLastLoginNewest": "Ordenar: último acesso, mais recente primeiro",
+      "sortLastLoginOldest": "Ordenar: último acesso, mais antigo primeiro"
     }
   },
   "changelog": {

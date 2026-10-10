@@ -110,4 +110,50 @@ describe('Admin API - user management (mock mode)', () => {
     expect((await fetchUsers()).total).toBe(before - 1)
     expect((await deleteUser('dsouza', { actor: 'admin' })).errorKey).toBe('admin.users.notFound')
   })
+
+  it('includes the last login, or null for users who never signed in', async () => {
+    const { items } = await fetchUsers({ pageSize: 100 })
+
+    expect(items.find((u) => u.username === 'ajohnson').lastLoginAt).toBe('2026-10-08T13:02:47.000Z')
+    expect(items.find((u) => u.username === 'ksmith').lastLoginAt).toBeNull()
+  })
+
+  it('orders users by name by default', async () => {
+    const { items } = await fetchUsers({ pageSize: 100 })
+    const names = items.map((u) => u.fullName.toLowerCase())
+
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)))
+  })
+
+  it('sorts by last login across every page, never-signed-in users counting as oldest', async () => {
+    const newest = await fetchUsers({ pageSize: 100, sort: 'lastLoginAt', order: 'desc' })
+    const oldest = await fetchUsers({ pageSize: 100, sort: 'lastLoginAt', order: 'asc' })
+    const times = (items) => items.map((u) => (u.lastLoginAt ? Date.parse(u.lastLoginAt) : -Infinity))
+
+    const desc = times(newest.items)
+    expect(desc).toEqual([...desc].sort((a, b) => b - a))
+    expect(newest.items.slice(-2).every((u) => u.lastLoginAt === null)).toBe(true)
+
+    const asc = times(oldest.items)
+    expect(asc).toEqual([...asc].sort((a, b) => a - b))
+    expect(oldest.items.slice(0, 2).every((u) => u.lastLoginAt === null)).toBe(true)
+
+    const firstPage = await fetchUsers({ page: 1, pageSize: 5, sort: 'lastLoginAt', order: 'desc' })
+    expect(firstPage.items.map((u) => u.username)).toEqual(newest.items.slice(0, 5).map((u) => u.username))
+  })
+
+  it('ignores unknown sort fields', async () => {
+    const unknown = await fetchUsers({ pageSize: 100, sort: 'password' })
+    const byName = await fetchUsers({ pageSize: 100 })
+
+    expect(unknown.items.map((u) => u.username)).toEqual(byName.items.map((u) => u.username))
+  })
+
+  it('records the last login when a user signs in', async () => {
+    const before = Date.now()
+    await authenticate({ username: 'lmartins', password: 'lmartins-pass' })
+    const { items } = await fetchUsers({ query: 'lmartins' })
+
+    expect(Date.parse(items[0].lastLoginAt)).toBeGreaterThanOrEqual(before - 1000)
+  })
 })

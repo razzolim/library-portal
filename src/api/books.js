@@ -36,6 +36,9 @@ export async function authenticate({ username, password, rememberMe }) {
       return { success: false, errorKey: 'login.accountDisabled' }
     }
 
+    // Like the real backend, record the sign-in (shown in Admin → Users until reload).
+    user.lastLoginAt = new Date().toISOString()
+
     return {
       success: true,
       user: {

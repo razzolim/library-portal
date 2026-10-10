@@ -145,6 +145,7 @@ The portal uses Vite's built-in `.env` support. Environment variables that need 
 | `VITE_API_BASE_URL` | `http://localhost:3000/api` | Full API base URL. When set, it overrides `VITE_API_HOST` and `VITE_API_PORT`. |
 | `VITE_USE_MOCK_API` | `true` | If `true`, the app uses in-memory mock data. If `false`, it calls the real backend at `VITE_API_BASE_URL`. |
 | `VITE_ENVIRONMENT` | `development` | Environment name used for logging/debugging. |
+| `VITE_COVERS_BASE_URL` | _(empty)_ | Optional cover image lookup by ISBN, e.g. `https://covers.openlibrary.org/b/isbn`. When empty, books without a backend `coverUrl` show a printed cover with their title and author. |
 
 ### Environment files
 
@@ -324,7 +325,7 @@ The expected backend endpoints are:
 | `fetchBooks` | `GET` | `/books` | Array of books. Each book may include `pdfUrl` (a backend URL or Google Drive link). |
 | `fetchBookById` | `GET` | `/books/:id` | Single book or `null` / `404`. |
 | `resetUserPassword` | `PATCH` | `/admin/users/:username/password` | `{ newPassword }` → `{ success, username }`. Admin only. |
-| `fetchUsers` | `GET` | `/admin/users` | `?page&pageSize&query` → `{ items, total, page, pageSize }`. Admin only. |
+| `fetchUsers` | `GET` | `/admin/users` | `?page&pageSize&query[&sort=lastLoginAt&order=asc\|desc]` → `{ items, total, page, pageSize }`. Admin only. |
 | `updateUserEmail` / `setUserEnabled` | `PATCH` | `/admin/users/:username` | `{ email }` or `{ enabled }` → `{ success, user }`. Admin only. |
 | `deleteUser` | `DELETE` | `/admin/users/:username` | `{ success: true }`. Admin only. |
 | `createBook` | `POST` | `/books` | Book fields → `{ success, book }` (`201`). Admin only. |

@@ -97,17 +97,39 @@ function toPublicUser(user) {
     fullName: user.fullName,
     email: user.email ?? null,
     role: user.role,
-    enabled: user.enabled !== false
+    enabled: user.enabled !== false,
+    lastLoginAt: user.lastLoginAt ?? null
   }
 }
 
+/** Columns the user list can be sorted by (whitelisted by the backend too). */
+export const USER_SORT_FIELDS = ['lastLoginAt']
+
+// "Never signed in" (null) counts as the oldest sign-in: first when ascending, last when descending.
+function compareLastLogin(a, b, order) {
+  const timeA = a.lastLoginAt ? Date.parse(a.lastLoginAt) : -Infinity
+  const timeB = b.lastLoginAt ? Date.parse(b.lastLoginAt) : -Infinity
+  if (timeA === timeB) return compareByName(a, b)
+  return order === 'asc' ? (timeA < timeB ? -1 : 1) : (timeA > timeB ? -1 : 1)
+}
+
+// The backend's default order: ORDER BY LOWER(fullName), id.
+function compareByName(a, b) {
+  return a.fullName.toLowerCase().localeCompare(b.fullName.toLowerCase()) || a.id - b.id
+}
+
 /**
- * Admin: list users (paginated, optionally filtered).
- * GET /admin/users?page=1&pageSize=12&query=
+ * Admin: list users (paginated, optionally filtered and sorted).
+ * GET /admin/users?page=1&pageSize=12&query=&sort=lastLoginAt&order=desc
  * Pages start at 1. `query` matches username, full name, or email.
+ * `sort` is one of USER_SORT_FIELDS; without it the backend's default order applies.
+ * `order` is `asc` or `desc` (default `desc`). Sorting happens on the server so it
+ * spans every page, not just the one on screen.
  * Resolves to `{ items, total, page, pageSize }`.
  */
-export async function fetchUsers({ page = 1, pageSize = 12, query = '' } = {}) {
+export async function fetchUsers({ page = 1, pageSize = 12, query = '', sort, order = 'desc' } = {}) {
+  const sortField = USER_SORT_FIELDS.includes(sort) ? sort : undefined
+
   if (USE_MOCK_API) {
     await sleep(MOCK_DELAY_MS)
     const needle = query.trim().toLowerCase()
@@ -115,6 +137,7 @@ export async function fetchUsers({ page = 1, pageSize = 12, query = '' } = {}) {
       !needle ||
       [u.username, u.fullName, u.email].some((v) => (v || '').toLowerCase().includes(needle))
     )
+    matches.sort(sortField === 'lastLoginAt' ? (a, b) => compareLastLogin(a, b, order) : compareByName)
     const start = (page - 1) * pageSize
     return {
       items: matches.slice(start, start + pageSize).map(toPublicUser),
@@ -124,7 +147,12 @@ export async function fetchUsers({ page = 1, pageSize = 12, query = '' } = {}) {
     }
   }
 
-  const { data } = await client.get('/admin/users', { params: { page, pageSize, query: query || undefined } })
+  const params = { page, pageSize, query: query || undefined }
+  if (sortField) {
+    params.sort = sortField
+    params.order = order === 'asc' ? 'asc' : 'desc'
+  }
+  const { data } = await client.get('/admin/users', { params })
   return data
 }
 

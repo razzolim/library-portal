@@ -143,7 +143,8 @@
         "email": "Email",
         "role": "Role",
         "status": "Status",
-        "actions": "Actions"
+        "actions": "Actions",
+        "lastLogin": "Last login"
       },
       "roles": {
         "reader": "Reader",
@@ -192,7 +193,14 @@
         "cannotModifySelf": "You cannot disable or delete your own account.",
         "lastAdmin": "This is the last active admin and cannot be disabled or deleted.",
         "generic": "Something went wrong. Please try again."
-      }
+      },
+      "neverSignedIn": "Never signed in",
+      "sortNewestFirst": "Sort by most recent login first",
+      "sortOldestFirst": "Sort by oldest login first",
+      "sortLabel": "Sort users",
+      "sortDefault": "Sort: name (A–Z)",
+      "sortLastLoginNewest": "Sort: last login, most recent first",
+      "sortLastLoginOldest": "Sort: last login, oldest first"
     }
   },
   "changelog": {

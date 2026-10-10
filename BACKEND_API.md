@@ -185,6 +185,7 @@ The frontend treats `null` or a 404 as a missing book.
 | `summary` | string | no | Book summary/description. |
 | `pdfUrl` | string | no | Embeddable URL for the PDF reader. |
 | `coverColor` | string | no | Hex color (e.g. `#4a5568`) used as the book tile background. |
+| `coverUrl` | string | no | URL of the book's cover image. When missing, the frontend looks the cover up by ISBN (if `VITE_COVERS_BASE_URL` is set) and otherwise shows a printed cover with the title and author. |
 | `uploadedBy` | string | no | Username of the admin who added the book. Set by the backend. |
 | `uploadedAt` | string | no | ISO 8601 timestamp of when the book was added. Set by the backend. |
 
@@ -232,7 +233,7 @@ Endpoints used by the admin area (`/admin`). All of them require a valid Bearer 
 |---|---|---|
 | `PATCH` | `/admin/users/:username/password` | Reset another user's password. Body: `{ newPassword }`. |
 | `POST` | `/books` | Add a new book. Returns `201` with `{ success, book }`. |
-| `GET` | `/admin/users` | List users (`page`, `pageSize`, `query`) → `{ items, total, page, pageSize }`. |
+| `GET` | `/admin/users` | List users (`page`, `pageSize`, `query`, optional `sort=lastLoginAt` + `order=asc\|desc`) → `{ items, total, page, pageSize }`. Each user includes `lastLoginAt` (ISO 8601 or `null`). |
 | `PATCH` | `/admin/users/:username` | Edit a user's `email` and/or `enabled` status. |
 | `DELETE` | `/admin/users/:username` | Permanently delete a user. |
 
@@ -257,5 +258,6 @@ The frontend reads these variables to locate the backend:
 |---|---|
 | `VITE_API_BASE_URL` | Full backend URL (e.g., `http://localhost:3000/api`). |
 | `VITE_USE_MOCK_API` | `true` uses in-memory mocks; `false` calls this backend. |
+| `VITE_COVERS_BASE_URL` | Optional. Cover image lookup by ISBN (e.g. `https://covers.openlibrary.org/b/isbn`). Not needed when the backend returns `coverUrl`. |
 
 Keep `CORS` enabled for local development if the frontend (`http://localhost:5173`) and backend (`http://localhost:3000`) run on different ports.
