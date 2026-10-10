@@ -64,6 +64,7 @@ library-portal/
     │       ├── AdminHomeView.vue
     │       ├── AdminUsersView.vue        # Paginated user list + per-user actions
     │       ├── AdminResetPasswordView.vue
+│       ├── AdminImportBooksView.vue  # CSV book import (POST /books/import)
     │       └── AdminAddBookView.vue
     ├── components/             # Reusable components
     │   ├── AppHeader.vue
@@ -167,6 +168,7 @@ baseURL: http://localhost:3000/api
   - `/admin/users` (`admin-users`) — paginated, searchable user list with actions: reset password, edit email, disable/enable, delete. Shows each user's last login (`lastLoginAt`, relative plus date/time, or "Never signed in") and sorts by it on the server (`sort=lastLoginAt&order=desc|asc`); the default order is by name.
   - `/admin/users/reset-password` (`admin-reset-password`) — reset another user's password.
   - `/admin/books/new` (`admin-add-book`) — add a book.
+  - `/admin/books/import` (`admin-import-books`) — import books from a CSV file (drag & drop or browse, client-side pre-checks, downloadable template, row-level error report).
   - Non-admins are redirected to `/library`. Child routes inherit `requiresAdmin` through the merged `to.meta`.
 - Any unknown route redirects to `/login`.
 
@@ -184,6 +186,7 @@ baseURL: http://localhost:3000/api
 - User management lives in `AdminUsersView.vue` and uses the reusable `src/components/admin/AdminModal.vue` for its dialogs (Escape to close, focus trap, can't be dismissed while saving). `PaginationControls` takes a `showingKey` prop to change its "Showing X to Y of N ..." label.
 - A disabled account is rejected at login with `errorKey: 'login.accountDisabled'`. Users cannot disable or delete themselves (UI and backend).
 - Destructive actions (e.g. password reset) use an inline two-step confirmation before calling the API.
+- CSV import: `importBooks(csvText)` in `src/api/admin.js` posts the raw text as `text/csv` (all-or-nothing). CSV parsing, limits and the template live in `src/utils/csv.js`. Failures resolve to `{ success: false, errorKey, ...details }` (`errors`, `missing`, `unknown`, `duplicated`, `maxRows`); the view maps them to `admin.books.import.*` messages and a line/column table. The mock validates the same rules and appends to the in-memory books.
 - In mock mode, `createBook()` appends to the in-memory book list (visible until reload), and `resetUserPassword()` only validates the username without changing the mock data. User edits (email, enabled) and deletes mutate the in-memory `users.json` array until reload; because `authenticate()` reads the same array, disabling or deleting a mock user affects login too.
 
 ### Change log
