@@ -7,7 +7,11 @@ import {
   setUserEnabled,
   deleteUser,
   importBooks,
-  exportBooks
+  exportBooks,
+  fetchFeatureFlags,
+  createFeatureFlag,
+  setFeatureFlagEnabled,
+  deleteFeatureFlag
 } from '../../../src/api/admin.js'
 import { fetchBooks, authenticate } from '../../../src/api/books.js'
 
@@ -212,5 +216,30 @@ describe('exportBooks (mock mode)', () => {
     expect(text.replace(/^\uFEFF/, '').startsWith('title,author,status')).toBe(true)
     expect(text.trim().split(/\r\n(?=[^\r\n]*,)/).length).toBeGreaterThan(0)
     expect(text).toContain(books[0].title)
+  })
+
+  it('creates, toggles and deletes a feature flag', async () => {
+    const created = await createFeatureFlag({ key: 'test-flag', description: 'Testing' }, { actor: 'admin' })
+    expect(created.success).toBe(true)
+    expect(created.flag).toMatchObject({ key: 'test-flag', enabled: false, updatedBy: 'admin' })
+
+    const toggled = await setFeatureFlagEnabled('test-flag', true, { actor: 'admin' })
+    expect(toggled.flag.enabled).toBe(true)
+    expect((await fetchFeatureFlags()).find((f) => f.key === 'test-flag').enabled).toBe(true)
+
+    expect(await deleteFeatureFlag('test-flag')).toEqual({ success: true })
+    expect((await fetchFeatureFlags()).some((f) => f.key === 'test-flag')).toBe(false)
+  })
+
+  it('rejects invalid and duplicate feature flag keys', async () => {
+    expect((await createFeatureFlag({ key: 'Not Valid' })).errorKey).toBe('admin.featureFlags.invalidKey')
+
+    const [existing] = await fetchFeatureFlags()
+    expect((await createFeatureFlag({ key: existing.key })).errorKey).toBe('admin.featureFlags.duplicateKey')
+  })
+
+  it('returns notFound when toggling or deleting an unknown flag', async () => {
+    expect((await setFeatureFlagEnabled('ghost', true)).errorKey).toBe('admin.featureFlags.notFound')
+    expect((await deleteFeatureFlag('ghost')).errorKey).toBe('admin.featureFlags.notFound')
   })
 })

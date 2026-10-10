@@ -51,9 +51,14 @@
     "forbidden": "Você não tem permissão para realizar esta ação.",
     "groups": {
       "users": "Usuários",
-      "books": "Livros"
+      "books": "Livros",
+      "system": "Sistema"
     },
     "tools": {
+      "featureFlags": {
+        "title": "Feature flags",
+        "description": "Ative ou desative recursos do portal sem uma nova versão."
+      },
       "resetPassword": {
         "title": "Redefinir senha",
         "description": "Defina uma nova senha para a conta de outro usuário."
@@ -70,6 +75,37 @@
         "title": "Importar livros",
         "description": "Adicione vários livros de uma só vez enviando um arquivo CSV."
       }
+    },
+    "featureFlags": {
+      "createTitle": "Nova feature flag",
+      "key": "Chave",
+      "keyPlaceholder": "ex.: book-recommendations",
+      "keyHint": "Letras minúsculas, números, hífens e sublinhados; de 2 a 64 caracteres, começando com uma letra.",
+      "descriptionLabel": "Descrição",
+      "descriptionPlaceholder": "O que esta flag controla?",
+      "create": "Criar flag",
+      "creating": "Criando...",
+      "created": "Flag \"{key}\" criada (desativada por padrão).",
+      "listTitle": "Todas as flags",
+      "loading": "Carregando feature flags...",
+      "loadError": "Não foi possível carregar as feature flags.",
+      "empty": "Nenhuma feature flag ainda.",
+      "on": "Ativa",
+      "off": "Inativa",
+      "toggleLabel": "Alternar {key}",
+      "enabledNotice": "A flag \"{key}\" foi ativada.",
+      "disabledNotice": "A flag \"{key}\" foi desativada.",
+      "updatedBy": "Atualizada por {user} em {date}",
+      "updatedAt": "Atualizada em {date}",
+      "delete": "Excluir",
+      "deleteTitle": "Excluir \"{key}\"?",
+      "deleteMessage": "O código que lê esta flag a tratará como desativada. Esta ação não pode ser desfeita.",
+      "confirmDelete": "Excluir flag",
+      "deleted": "Flag \"{key}\" excluída.",
+      "invalidKey": "Use de 2 a 64 letras minúsculas, números, hífens ou sublinhados, começando com uma letra.",
+      "duplicateKey": "Já existe uma flag com esta chave.",
+      "notFound": "Esta flag não existe mais.",
+      "error": "Algo deu errado. Tente novamente."
     },
     "resetPassword": {
       "username": "Usuário",

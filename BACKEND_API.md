@@ -239,12 +239,17 @@ Endpoints used by the admin area (`/admin`). All of them require a valid Bearer 
 | `GET` | `/admin/users` | List users (`page`, `pageSize`, `query`, optional `sort=lastLoginAt` + `order=asc\|desc`) → `{ items, total, page, pageSize }`. Each user includes `lastLoginAt` (ISO 8601 or `null`). |
 | `PATCH` | `/admin/users/:username` | Edit a user's `email` and/or `enabled` status. |
 | `DELETE` | `/admin/users/:username` | Permanently delete a user. |
+| `GET` | `/admin/feature-flags` | List feature flags → `{ items: [{ key, description, enabled, updatedAt, updatedBy }] }`. |
+| `POST` | `/admin/feature-flags` | Create a flag. Body: `{ key, description?, enabled? }`. Returns `201` with `{ success, flag }`; `422` `admin.featureFlags.invalidKey`, `409` `admin.featureFlags.duplicateKey`. |
+| `PATCH` | `/admin/feature-flags/:key` | Turn a flag on or off. Body: `{ enabled }`. Returns `{ success, flag }`; `404` `admin.featureFlags.notFound`. |
+| `DELETE` | `/admin/feature-flags/:key` | Delete a flag. `404` `admin.featureFlags.notFound`. |
 
 Full specifications (request/response bodies, validation rules, error keys, security and audit requirements, suggested data model):
 
 - Reset password and add book: [`documents/backend-spec-admin.md`](./documents/backend-spec-admin.md)
 - Export books to CSV: [`documents/backend-spec-admin-books-export.md`](./documents/backend-spec-admin-books-export.md)
 - User list, edit email, disable/enable, delete: [`documents/backend-spec-admin-users.md`](./documents/backend-spec-admin-users.md)
+- Feature flags: [`documents/backend-spec-admin-feature-flags.md`](./documents/backend-spec-admin-feature-flags.md)
 
 ## Errors
 
