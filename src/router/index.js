@@ -7,6 +7,7 @@ import AccountView from '../views/AccountView.vue'
 import ChangeLogView from '../views/ChangeLogView.vue'
 import AdminView from '../views/admin/AdminView.vue'
 import AdminHomeView from '../views/admin/AdminHomeView.vue'
+import AdminUsersView from '../views/admin/AdminUsersView.vue'
 import AdminResetPasswordView from '../views/admin/AdminResetPasswordView.vue'
 import AdminAddBookView from '../views/admin/AdminAddBookView.vue'
 
@@ -62,6 +63,11 @@ const router = createRouter({
           path: '',
           name: 'admin',
           component: AdminHomeView
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: AdminUsersView
         },
         {
           path: 'users/reset-password',

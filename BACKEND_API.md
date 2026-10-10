@@ -70,6 +70,10 @@ Authenticate a user and return a token.
 
 The frontend currently uses the `success` field to determine the result; the HTTP status may be 200 or 401.
 
+**Disabled account (403)**
+
+When the credentials are correct but an admin has disabled the account, respond with `403` and `{ "success": false, "errorKey": "login.accountDisabled" }`. The frontend shows a dedicated "account disabled" message. Any other 401/403 is shown as invalid credentials.
+
 ### `POST /auth/logout`
 
 Invalidate the current session/token.
@@ -228,8 +232,14 @@ Endpoints used by the admin area (`/admin`). All of them require a valid Bearer 
 |---|---|---|
 | `PATCH` | `/admin/users/:username/password` | Reset another user's password. Body: `{ newPassword }`. |
 | `POST` | `/books` | Add a new book. Returns `201` with `{ success, book }`. |
+| `GET` | `/admin/users` | List users (`page`, `pageSize`, `query`) → `{ items, total, page, pageSize }`. |
+| `PATCH` | `/admin/users/:username` | Edit a user's `email` and/or `enabled` status. |
+| `DELETE` | `/admin/users/:username` | Permanently delete a user. |
 
-The full specification (request/response bodies, validation rules, error keys, security and audit requirements, suggested data model) lives in [`documents/backend-spec-admin.md`](./documents/backend-spec-admin.md).
+Full specifications (request/response bodies, validation rules, error keys, security and audit requirements, suggested data model):
+
+- Reset password and add book: [`documents/backend-spec-admin.md`](./documents/backend-spec-admin.md)
+- User list, edit email, disable/enable, delete: [`documents/backend-spec-admin-users.md`](./documents/backend-spec-admin-users.md)
 
 ## Errors
 

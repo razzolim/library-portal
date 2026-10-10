@@ -205,13 +205,14 @@ New admin tools should follow the same conventions so the frontend can plug them
 - Use `403` + `admin.forbidden` for authorization failures, never `401`.
 - Namespace error keys as `admin.<tool>.<reason>`.
 
+User listing, email edit, disable/enable, and delete are specified in [`backend-spec-admin-users.md`](./backend-spec-admin-users.md).
+
 Likely next endpoints (not implemented in the frontend yet):
 
 | Tool | Endpoint |
 |---|---|
-| List / search users | `GET /admin/users?query=` |
 | Create user | `POST /admin/users` |
-| Change a user's role | `PATCH /admin/users/:username` `{ role }` |
+| Change a user's role | `PATCH /admin/users/:username` `{ role }` (extends the endpoint in [`backend-spec-admin-users.md`](./backend-spec-admin-users.md)) |
 | Edit book | `PUT /books/:id` |
 | Remove book | `DELETE /books/:id` |
 

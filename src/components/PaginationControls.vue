@@ -16,7 +16,7 @@
       </label>
 
       <span class="pagination__info">
-        {{ $t('pagination.showing', { start: rangeStart, end: rangeEnd, total: totalItems }) }}
+        {{ $t(showingKey, { start: rangeStart, end: rangeEnd, total: totalItems }) }}
       </span>
     </div>
 
@@ -55,6 +55,10 @@ const props = defineProps({
   currentPage: {
     type: Number,
     default: 1
+  },
+  showingKey: {
+    type: String,
+    default: 'pagination.showing'
   },
   totalItems: {
     type: Number,

@@ -61,6 +61,10 @@
       "addBook": {
         "title": "Adicionar livro",
         "description": "Adicione um novo livro ao acervo da biblioteca."
+      },
+      "users": {
+        "title": "Usuários",
+        "description": "Veja todos os usuários e redefina senhas, edite e-mails, desative ou exclua contas."
       }
     },
     "resetPassword": {
@@ -124,6 +128,71 @@
       "duplicateIsbn": "Já existe um livro com este ISBN.",
       "invalidFields": "Alguns campos são inválidos. Revise o formulário.",
       "error": "Falha ao adicionar o livro. Tente novamente."
+    },
+    "close": "Fechar",
+    "users": {
+      "searchLabel": "Buscar usuários",
+      "searchPlaceholder": "Buscar por nome, usuário ou e-mail...",
+      "loading": "Carregando usuários...",
+      "loadError": "Falha ao carregar os usuários. Tente novamente.",
+      "retry": "Tentar novamente",
+      "empty": "Nenhum usuário encontrado.",
+      "emptySearch": "Nenhum usuário corresponde à busca.",
+      "columns": {
+        "user": "Usuário",
+        "email": "E-mail",
+        "role": "Função",
+        "status": "Status",
+        "actions": "Ações"
+      },
+      "roles": {
+        "reader": "Leitor",
+        "admin": "Admin"
+      },
+      "status": {
+        "active": "Ativo",
+        "disabled": "Desativado"
+      },
+      "you": "Você",
+      "noEmail": "Sem e-mail",
+      "actions": "Ações",
+      "actionsFor": "Ações para {username}",
+      "resetPassword": "Redefinir senha",
+      "editEmail": "Editar e-mail",
+      "disable": "Desativar",
+      "enable": "Ativar",
+      "delete": "Excluir",
+      "selfHint": "Você não pode desativar nem excluir a sua própria conta.",
+      "resetTitle": "Redefinir senha de {username}",
+      "emailTitle": "Editar e-mail de {username}",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "nome{'@'}exemplo.com",
+      "saveEmail": "Salvar e-mail",
+      "saving": "Salvando...",
+      "disableTitle": "Desativar {username}?",
+      "disableMessage": "{username} será desconectado e não poderá entrar até que a conta seja ativada novamente.",
+      "enableTitle": "Ativar {username}?",
+      "enableMessage": "{username} poderá entrar novamente.",
+      "deleteTitle": "Excluir {username}?",
+      "deleteMessage": "Isso exclui permanentemente a conta \"{username}\". Esta ação não pode ser desfeita.",
+      "typeToConfirm": "Digite \"{username}\" para confirmar",
+      "deleteConfirm": "Excluir usuário",
+      "notices": {
+        "passwordReset": "A senha de \"{username}\" foi redefinida.",
+        "emailUpdated": "O e-mail de \"{username}\" foi atualizado.",
+        "disabled": "\"{username}\" foi desativado.",
+        "enabled": "\"{username}\" foi ativado.",
+        "deleted": "\"{username}\" foi excluído."
+      },
+      "errors": {
+        "notFound": "Este usuário não existe mais.",
+        "duplicateEmail": "Outro usuário já usa este e-mail.",
+        "invalidEmail": "Informe um e-mail válido.",
+        "emailRequired": "Informe um e-mail.",
+        "cannotModifySelf": "Você não pode desativar nem excluir a sua própria conta.",
+        "lastAdmin": "Este é o último administrador ativo e não pode ser desativado nem excluído.",
+        "generic": "Algo deu errado. Tente novamente."
+      }
     }
   },
   "changelog": {
@@ -148,7 +217,8 @@
     "demoCredentials": "Credenciais de demonstração:",
     "invalidCredentials": "Usuário ou senha inválidos.",
     "missingToken": "O login foi aceito, mas o servidor não retornou um token de acesso. Tente novamente ou contate o suporte.",
-    "unexpectedError": "Ocorreu um erro inesperado. Tente novamente."
+    "unexpectedError": "Ocorreu um erro inesperado. Tente novamente.",
+    "accountDisabled": "Esta conta está desativada. Entre em contato com um administrador."
   },
   "library": {
     "title": "Acervo da Biblioteca",
@@ -191,7 +261,8 @@
     "previous": "Anterior",
     "next": "Próxima",
     "pageInfo": "Página {current} de {total}",
-    "showing": "Mostrando {start} a {end} de {total} livros"
+    "showing": "Mostrando {start} a {end} de {total} livros",
+    "showingUsers": "Mostrando {start} a {end} de {total} usuários"
   },
   "language": {
     "label": "Idioma",

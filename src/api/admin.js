@@ -89,3 +89,110 @@ export async function createBook(book, { uploadedBy } = {}) {
     return toErrorResult(err)
   }
 }
+
+function toPublicUser(user) {
+  return {
+    id: user.id,
+    username: user.username,
+    fullName: user.fullName,
+    email: user.email ?? null,
+    role: user.role,
+    enabled: user.enabled !== false
+  }
+}
+
+/**
+ * Admin: list users (paginated, optionally filtered).
+ * GET /admin/users?page=1&pageSize=12&query=
+ * Pages start at 1. `query` matches username, full name, or email.
+ * Resolves to `{ items, total, page, pageSize }`.
+ */
+export async function fetchUsers({ page = 1, pageSize = 12, query = '' } = {}) {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    const needle = query.trim().toLowerCase()
+    const matches = users.filter((u) =>
+      !needle ||
+      [u.username, u.fullName, u.email].some((v) => (v || '').toLowerCase().includes(needle))
+    )
+    const start = (page - 1) * pageSize
+    return {
+      items: matches.slice(start, start + pageSize).map(toPublicUser),
+      total: matches.length,
+      page,
+      pageSize
+    }
+  }
+
+  const { data } = await client.get('/admin/users', { params: { page, pageSize, query: query || undefined } })
+  return data
+}
+
+/**
+ * Admin: change a user's email.
+ * PATCH /admin/users/:username  { email }
+ */
+export async function updateUserEmail(username, email) {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    const user = users.find((u) => u.username === username)
+    if (!user) return { success: false, errorKey: 'admin.users.notFound' }
+    const taken = users.some((u) => u !== user && (u.email || '').toLowerCase() === email.toLowerCase())
+    if (taken) return { success: false, errorKey: 'admin.users.duplicateEmail' }
+    user.email = email
+    return { success: true, user: toPublicUser(user) }
+  }
+
+  try {
+    const { data } = await client.patch(`/admin/users/${encodeURIComponent(username)}`, { email })
+    return data
+  } catch (err) {
+    return toErrorResult(err)
+  }
+}
+
+/**
+ * Admin: disable or re-enable a user.
+ * PATCH /admin/users/:username  { enabled }
+ * `actor` (the signed-in admin's username) is only used by the mock to
+ * reproduce the backend's "cannot modify yourself" rule.
+ */
+export async function setUserEnabled(username, enabled, { actor } = {}) {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    const user = users.find((u) => u.username === username)
+    if (!user) return { success: false, errorKey: 'admin.users.notFound' }
+    if (!enabled && username === actor) return { success: false, errorKey: 'admin.users.cannotModifySelf' }
+    user.enabled = enabled
+    return { success: true, user: toPublicUser(user) }
+  }
+
+  try {
+    const { data } = await client.patch(`/admin/users/${encodeURIComponent(username)}`, { enabled })
+    return data
+  } catch (err) {
+    return toErrorResult(err)
+  }
+}
+
+/**
+ * Admin: permanently delete a user.
+ * DELETE /admin/users/:username
+ */
+export async function deleteUser(username, { actor } = {}) {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    const index = users.findIndex((u) => u.username === username)
+    if (index === -1) return { success: false, errorKey: 'admin.users.notFound' }
+    if (username === actor) return { success: false, errorKey: 'admin.users.cannotModifySelf' }
+    users.splice(index, 1)
+    return { success: true }
+  }
+
+  try {
+    const { data } = await client.delete(`/admin/users/${encodeURIComponent(username)}`)
+    return data ?? { success: true }
+  } catch (err) {
+    return toErrorResult(err)
+  }
+}
