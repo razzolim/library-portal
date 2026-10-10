@@ -51,9 +51,14 @@
     "forbidden": "You do not have permission to perform this action.",
     "groups": {
       "users": "Users",
-      "books": "Books"
+      "books": "Books",
+      "system": "System"
     },
     "tools": {
+      "featureFlags": {
+        "title": "Feature flags",
+        "description": "Turn portal features on or off without a new release."
+      },
       "resetPassword": {
         "title": "Reset password",
         "description": "Set a new password for another user's account."
@@ -70,6 +75,37 @@
         "title": "Import books",
         "description": "Add many books at once by uploading a CSV file."
       }
+    },
+    "featureFlags": {
+      "createTitle": "New feature flag",
+      "key": "Key",
+      "keyPlaceholder": "e.g. book-recommendations",
+      "keyHint": "Lowercase letters, numbers, hyphens and underscores; 2 to 64 characters, starting with a letter.",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What does this flag control?",
+      "create": "Create flag",
+      "creating": "Creating...",
+      "created": "Flag \"{key}\" created (off by default).",
+      "listTitle": "All flags",
+      "loading": "Loading feature flags...",
+      "loadError": "Could not load the feature flags.",
+      "empty": "No feature flags yet.",
+      "on": "On",
+      "off": "Off",
+      "toggleLabel": "Toggle {key}",
+      "enabledNotice": "Flag \"{key}\" is now on.",
+      "disabledNotice": "Flag \"{key}\" is now off.",
+      "updatedBy": "Updated by {user} on {date}",
+      "updatedAt": "Updated on {date}",
+      "delete": "Delete",
+      "deleteTitle": "Delete \"{key}\"?",
+      "deleteMessage": "Code that reads this flag will treat it as off. This cannot be undone.",
+      "confirmDelete": "Delete flag",
+      "deleted": "Flag \"{key}\" deleted.",
+      "invalidKey": "Use 2 to 64 lowercase letters, numbers, hyphens or underscores, starting with a letter.",
+      "duplicateKey": "A flag with this key already exists.",
+      "notFound": "This flag no longer exists.",
+      "error": "Something went wrong. Please try again."
     },
     "resetPassword": {
       "username": "Username",

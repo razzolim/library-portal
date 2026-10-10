@@ -1,6 +1,7 @@
 import client from './client.js'
 import books from '../mocks/books.json'
 import users from '../mocks/users.json'
+import featureFlagsSeed from '../mocks/featureFlags.json'
 import { parseCsv, booksToCsv, IMPORT_MAX_BYTES, IMPORT_MAX_ROWS, IMPORT_REQUIRED_COLUMNS, IMPORT_OPTIONAL_COLUMNS } from '../utils/csv.js'
 
 const MOCK_DELAY_MS = 500
@@ -381,6 +382,103 @@ export async function deleteUser(username, { actor } = {}) {
 
   try {
     const { data } = await client.delete(`/admin/users/${encodeURIComponent(username)}`)
+    return data ?? { success: true }
+  } catch (err) {
+    return toErrorResult(err)
+  }
+}
+
+// Mutable copy so mock edits never touch the imported seed.
+const featureFlags = featureFlagsSeed.map((flag) => ({ ...flag }))
+
+/** Flag keys: lowercase letters, digits, `-` and `_`; start with a letter; 2-64 chars. */
+export const FEATURE_FLAG_KEY_PATTERN = /^[a-z][a-z0-9_-]{1,63}$/
+
+/**
+ * Admin: list every feature flag.
+ * GET /admin/feature-flags → `{ items: [{ key, description, enabled, updatedAt, updatedBy }] }`
+ * Resolves to the `items` array, sorted by key.
+ */
+export async function fetchFeatureFlags() {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    return featureFlags.map((f) => ({ ...f })).sort((a, b) => a.key.localeCompare(b.key))
+  }
+
+  const { data } = await client.get('/admin/feature-flags')
+  return data.items
+}
+
+/**
+ * Admin: create a feature flag (disabled unless `enabled` is true).
+ * POST /admin/feature-flags  { key, description, enabled }
+ */
+export async function createFeatureFlag({ key, description = '', enabled = false }, { actor } = {}) {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    if (!FEATURE_FLAG_KEY_PATTERN.test(key)) {
+      return { success: false, errorKey: 'admin.featureFlags.invalidKey' }
+    }
+    if (featureFlags.some((f) => f.key === key)) {
+      return { success: false, errorKey: 'admin.featureFlags.duplicateKey' }
+    }
+    const flag = {
+      key,
+      description,
+      enabled: !!enabled,
+      updatedAt: new Date().toISOString(),
+      updatedBy: actor || null
+    }
+    featureFlags.push(flag)
+    return { success: true, flag: { ...flag } }
+  }
+
+  try {
+    const { data } = await client.post('/admin/feature-flags', { key, description, enabled })
+    return data
+  } catch (err) {
+    return toErrorResult(err)
+  }
+}
+
+/**
+ * Admin: turn a feature flag on or off.
+ * PATCH /admin/feature-flags/:key  { enabled }
+ */
+export async function setFeatureFlagEnabled(key, enabled, { actor } = {}) {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    const flag = featureFlags.find((f) => f.key === key)
+    if (!flag) return { success: false, errorKey: 'admin.featureFlags.notFound' }
+    flag.enabled = !!enabled
+    flag.updatedAt = new Date().toISOString()
+    flag.updatedBy = actor || null
+    return { success: true, flag: { ...flag } }
+  }
+
+  try {
+    const { data } = await client.patch(`/admin/feature-flags/${encodeURIComponent(key)}`, { enabled })
+    return data
+  } catch (err) {
+    return toErrorResult(err)
+  }
+}
+
+/**
+ * Admin: permanently delete a feature flag.
+ * DELETE /admin/feature-flags/:key
+ */
+export async function deleteFeatureFlag(key) {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    const index = featureFlags.findIndex((f) => f.key === key)
+    if (index === -1) return { success: false, errorKey: 'admin.featureFlags.notFound' }
+    featureFlags.splice(index, 1)
+    return { success: true }
+  }
+
+  try {
+    const { data } = await client.delete(`/admin/feature-flags/${encodeURIComponent(key)}`)
     return data ?? { success: true }
   } catch (err) {
     return toErrorResult(err)

@@ -18,7 +18,8 @@ async function mountAdmin() {
           { path: 'users', name: 'admin-users', component: { template: '<div>Users</div>' } },
           { path: 'users/reset-password', name: 'admin-reset-password', component: { template: '<div>Reset</div>' } },
           { path: 'books/new', name: 'admin-add-book', component: { template: '<div>Add</div>' } },
-          { path: 'books/import', name: 'admin-import-books', component: { template: '<div>Import</div>' } }
+          { path: 'books/import', name: 'admin-import-books', component: { template: '<div>Import</div>' } },
+          { path: 'feature-flags', name: 'admin-feature-flags', component: { template: '<div>Flags</div>' } }
         ]
       }
     ]

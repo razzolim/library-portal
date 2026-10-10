@@ -33,7 +33,13 @@ export const adminTools = [
     route: 'admin-import-books',
     group: 'books',
     icon: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12'
+  },
+  {
+    key: 'featureFlags',
+    route: 'admin-feature-flags',
+    group: 'system',
+    icon: 'M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7'
   }
 ]
 
-export const adminToolGroups = ['users', 'books']
+export const adminToolGroups = ['users', 'books', 'system']

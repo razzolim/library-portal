@@ -174,6 +174,7 @@ baseURL: http://localhost:3000/api
   - `/admin/users/reset-password` (`admin-reset-password`) — reset another user's password.
   - `/admin/books/new` (`admin-add-book`) — add a book.
   - `/admin/books/import` (`admin-import-books`) — import books from a CSV file (drag & drop or browse, client-side pre-checks, downloadable template, row-level error report).
+  - `/admin/feature-flags` (`admin-feature-flags`) — list, create, toggle on/off, and delete feature flags (group `system`). Management only; nothing in the portal reads the flags yet. API in `src/api/admin.js` (`fetchFeatureFlags`, `createFeatureFlag`, `setFeatureFlagEnabled`, `deleteFeatureFlag`); mock seed in `src/mocks/featureFlags.json`; spec in `documents/backend-spec-admin-feature-flags.md`.
   - Non-admins are redirected to `/library`. Child routes inherit `requiresAdmin` through the merged `to.meta`.
 - Any unknown route redirects to `/login`.
 
