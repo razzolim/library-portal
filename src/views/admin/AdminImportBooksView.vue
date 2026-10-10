@@ -147,6 +147,27 @@
         </button>
       </div>
     </form>
+
+    <section class="admin-import__export" aria-labelledby="admin-export-title">
+      <div class="admin-import__export-text">
+        <h3 id="admin-export-title" class="admin-import__export-title">{{ $t('admin.books.export.title') }}</h3>
+        <p class="admin-import__export-description">{{ $t('admin.books.export.description') }}</p>
+      </div>
+      <button
+        type="button"
+        class="admin-form__btn admin-form__btn--secondary"
+        :disabled="exporting"
+        @click="exportBooks"
+      >
+        <svg v-if="!exporting" class="admin-import__btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+        </svg>
+        {{ exporting ? $t('admin.books.export.exporting') : $t('admin.books.export.button') }}
+      </button>
+      <p v-if="exportMessage" class="admin-import__export-message" :class="{ 'admin-import__export-message--error': exportFailed }" :role="exportFailed ? 'alert' : 'status'">
+        {{ exportMessage }}
+      </p>
+    </section>
   </div>
 </template>
 
@@ -154,7 +175,7 @@
 import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { importBooks } from '../../api/admin.js'
+import { importBooks, exportBooks as requestBooksExport } from '../../api/admin.js'
 import { useAuthStore } from '../../stores/auth'
 import {
   inspectBooksCsv,
@@ -166,6 +187,7 @@ import {
 } from '../../utils/csv.js'
 
 const MAX_VISIBLE_ISSUES = 50
+const EXPORT_ERRORS = ['admin.forbidden', 'admin.rateLimited']
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -181,6 +203,9 @@ const requestHint = ref('')
 const rowErrors = ref([])
 const importedCount = ref(null)
 const fileInput = ref(null)
+const exporting = ref(false)
+const exportMessage = ref('')
+const exportFailed = ref(false)
 
 const issues = computed(() =>
   rowErrors.value.flatMap(({ line, fields }) =>
@@ -278,14 +303,39 @@ function handleDrop(event) {
   selectFile(event.dataTransfer?.files?.[0])
 }
 
-function downloadTemplate() {
-  const blob = new Blob([IMPORT_TEMPLATE_CSV], { type: 'text/csv;charset=utf-8' })
+function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = 'books-import-template.csv'
+  link.download = filename
   link.click()
   URL.revokeObjectURL(url)
+}
+
+function downloadTemplate() {
+  downloadBlob(new Blob(['\uFEFF', IMPORT_TEMPLATE_CSV], { type: 'text/csv;charset=utf-8' }), 'books-import-template.csv')
+}
+
+async function exportBooks() {
+  exporting.value = true
+  exportMessage.value = ''
+  exportFailed.value = false
+  try {
+    const result = await requestBooksExport()
+    if (result.success) {
+      const date = new Date().toISOString().slice(0, 10)
+      downloadBlob(result.blob, `books-${date}.csv`)
+      exportMessage.value = t('admin.books.export.done')
+    } else {
+      exportFailed.value = true
+      exportMessage.value = EXPORT_ERRORS.includes(result.errorKey) ? t(result.errorKey) : t('admin.books.export.error')
+    }
+  } catch {
+    exportFailed.value = true
+    exportMessage.value = t('admin.books.export.error')
+  } finally {
+    exporting.value = false
+  }
 }
 
 function applyFailure(result) {
@@ -566,5 +616,49 @@ async function handleSubmit() {
   color: var(--color-warning);
   background-color: var(--color-warning-bg);
   border-radius: var(--radius-full);
+}
+
+.admin-import__export {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.admin-import__export-text {
+  flex: 1 1 16rem;
+}
+
+.admin-import__export-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.admin-import__export-description {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.admin-import__btn-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.admin-import__export-message {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-success);
+}
+
+.admin-import__export-message--error {
+  color: var(--color-error);
 }
 </style>

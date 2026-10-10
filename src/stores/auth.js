@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authenticate, logout as logoutApi } from '../api/books.js'
+import { DEFAULT_READER_PREFERENCES, updateReaderPreferences } from '../api/reader.js'
 import { i18n, setLocale } from '../i18n'
 
 const STORAGE_KEY = 'library_portal_auth'
@@ -44,6 +45,11 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
   const username = computed(() => user.value?.fullName || user.value?.username || '')
   const isAdmin = computed(() => user.value?.role === 'admin')
+
+  const readerPreferences = computed(() => ({
+    ...DEFAULT_READER_PREFERENCES,
+    ...(user.value?.readerPreferences || {})
+  }))
 
   // Actions
   async function login(credentials) {
@@ -113,6 +119,28 @@ export const useAuthStore = defineStore('auth', () => {
     other.removeItem(STORAGE_KEY) // avoid stale tokens in the other storage
   }
 
+  // Rewrites the session in whichever storage already holds it, keeping "remember me" as chosen.
+  function persistInPlace() {
+    for (const storage of [sessionStorage, localStorage]) {
+      if (storage.getItem(STORAGE_KEY)) {
+        storage.setItem(STORAGE_KEY, JSON.stringify({ user: user.value, token: token.value }))
+        return
+      }
+    }
+  }
+
+  // Applies the change right away and saves it in the background; a failed save
+  // only means the preference won't follow the user to another device.
+  async function setReaderPreferences(patch) {
+    if (!user.value) return
+    user.value = {
+      ...user.value,
+      readerPreferences: { ...readerPreferences.value, ...patch }
+    }
+    persistInPlace()
+    await updateReaderPreferences(patch)
+  }
+
   function prepareNewTabAuth() {
     const session = sessionStorage.getItem(STORAGE_KEY)
     if (session && !localStorage.getItem(STORAGE_KEY)) {
@@ -128,7 +156,9 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     username,
     isAdmin,
+    readerPreferences,
     login,
+    setReaderPreferences,
     logout,
     prepareNewTabAuth
   }

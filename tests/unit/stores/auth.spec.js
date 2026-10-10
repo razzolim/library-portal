@@ -210,4 +210,23 @@ describe('Auth Store', () => {
 
     vi.restoreAllMocks()
   })
+  describe('reader preferences', () => {
+    it('falls back to the defaults', () => {
+      const auth = useAuthStore()
+
+      expect(auth.readerPreferences).toEqual({ pageTheme: 'light', zoom: 'fit-width' })
+    })
+
+    it('merges a change, keeps it in the same storage and keeps the other values', async () => {
+      const auth = useAuthStore()
+      await auth.login({ username: 'reader', password: 'reader', rememberMe: false })
+
+      await auth.setReaderPreferences({ pageTheme: 'dark' })
+
+      expect(auth.readerPreferences).toEqual({ pageTheme: 'dark', zoom: 'fit-width' })
+      const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY))
+      expect(stored.user.readerPreferences.pageTheme).toBe('dark')
+      expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+    })
+  })
 })

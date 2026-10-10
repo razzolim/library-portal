@@ -1,7 +1,7 @@
 import client from './client.js'
 import books from '../mocks/books.json'
 import users from '../mocks/users.json'
-import { parseCsv, IMPORT_MAX_BYTES, IMPORT_MAX_ROWS, IMPORT_REQUIRED_COLUMNS, IMPORT_OPTIONAL_COLUMNS } from '../utils/csv.js'
+import { parseCsv, booksToCsv, IMPORT_MAX_BYTES, IMPORT_MAX_ROWS, IMPORT_REQUIRED_COLUMNS, IMPORT_OPTIONAL_COLUMNS } from '../utils/csv.js'
 
 const MOCK_DELAY_MS = 500
 
@@ -215,6 +215,39 @@ export async function importBooks(csvText, { uploadedBy } = {}) {
   } catch (err) {
     const data = err.response?.data
     if (data?.errorKey) return { ...data, success: false }
+    return toErrorResult(err)
+  }
+}
+
+/**
+ * Admin: download every book as a CSV file.
+ * GET /books/export — requires the `admin` role; responds with `text/csv`.
+ * Resolves to `{ success: true, blob }` or `{ success: false, errorKey }`.
+ * In mock mode, the CSV is generated from the in-memory books.
+ */
+export async function exportBooks() {
+  if (USE_MOCK_API) {
+    await sleep(MOCK_DELAY_MS)
+    return { success: true, blob: new Blob(['\uFEFF', booksToCsv(books)], { type: 'text/csv;charset=utf-8' }) }
+  }
+
+  try {
+    const { data } = await client.get('/books/export', {
+      responseType: 'blob',
+      headers: { Accept: 'text/csv' }
+    })
+    return { success: true, blob: data }
+  } catch (err) {
+    // With `responseType: 'blob'` an error body arrives as a Blob; read the JSON out of it.
+    const body = err.response?.data
+    if (body && typeof body.text === 'function') {
+      try {
+        const parsed = JSON.parse(await body.text())
+        if (parsed?.errorKey) return { success: false, errorKey: parsed.errorKey }
+      } catch {
+        // Not JSON; fall through to the generic mapping.
+      }
+    }
     return toErrorResult(err)
   }
 }

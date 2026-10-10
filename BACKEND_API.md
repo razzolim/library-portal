@@ -192,6 +192,7 @@ The frontend treats `null` or a 404 as a missing book.
 ### `pdfUrl` contract
 
 - The frontend loads `pdfUrl` in an iframe on the `/library/:id/read` route.
+- Reader endpoints planned for the next phase (PDF streaming, reading progress, bookmarks, reader preferences) are specified in [`documents/backend-spec-reader.md`](./documents/backend-spec-reader.md).
 - The URL must be embeddable (e.g., a Google Drive `/preview` URL or a backend proxy URL).
 - **Recommended:** serve the PDF through a backend proxy so the original Google Drive URL is never exposed to the browser.
 
@@ -234,6 +235,7 @@ Endpoints used by the admin area (`/admin`). All of them require a valid Bearer 
 | `PATCH` | `/admin/users/:username/password` | Reset another user's password. Body: `{ newPassword }`. |
 | `POST` | `/books` | Add a new book. Returns `201` with `{ success, book }`. |
 | `POST` | `/books/import` | Bulk-create books from a CSV. Raw `text/csv` body (≤ 1 MB, ≤ 500 rows), all-or-nothing. Returns `201` with `{ success, imported }`; failures return `errorKey` plus details (`errors`, `missing`, `unknown`, `duplicated`, `maxRows`, `maxBytes`). Full contract: backend `documents/backend-api-specification.md` §3.4. |
+| `GET` | `/books/export` | Download every book as a `text/csv` file (same columns as the import template, including `summary` and `pdfUrl`). Admin only. Full spec: [`documents/backend-spec-admin-books-export.md`](./documents/backend-spec-admin-books-export.md). |
 | `GET` | `/admin/users` | List users (`page`, `pageSize`, `query`, optional `sort=lastLoginAt` + `order=asc\|desc`) → `{ items, total, page, pageSize }`. Each user includes `lastLoginAt` (ISO 8601 or `null`). |
 | `PATCH` | `/admin/users/:username` | Edit a user's `email` and/or `enabled` status. |
 | `DELETE` | `/admin/users/:username` | Permanently delete a user. |
@@ -241,6 +243,7 @@ Endpoints used by the admin area (`/admin`). All of them require a valid Bearer 
 Full specifications (request/response bodies, validation rules, error keys, security and audit requirements, suggested data model):
 
 - Reset password and add book: [`documents/backend-spec-admin.md`](./documents/backend-spec-admin.md)
+- Export books to CSV: [`documents/backend-spec-admin-books-export.md`](./documents/backend-spec-admin-books-export.md)
 - User list, edit email, disable/enable, delete: [`documents/backend-spec-admin-users.md`](./documents/backend-spec-admin-users.md)
 
 ## Errors
