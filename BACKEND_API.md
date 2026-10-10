@@ -244,6 +244,8 @@ Endpoints used by the admin area (`/admin`). All of them require a valid Bearer 
 | `PATCH` | `/admin/feature-flags/:key` | Turn a flag on or off. Body: `{ enabled }`. Returns `{ success, flag }`; `404` `admin.featureFlags.notFound`. |
 | `DELETE` | `/admin/feature-flags/:key` | Delete a flag. `404` `admin.featureFlags.notFound`. |
 
+`GET /admin/feature-flags` is open to any signed-in user because the portal reads flag values from it (only `key` and `enabled` are needed); create, toggle and delete are admin-only. See the feature flags spec below.
+
 Full specifications (request/response bodies, validation rules, error keys, security and audit requirements, suggested data model):
 
 - Reset password and add book: [`documents/backend-spec-admin.md`](./documents/backend-spec-admin.md)

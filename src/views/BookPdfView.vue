@@ -6,22 +6,35 @@
       {{ error }}
     </div>
 
-    <!-- Backend PDF proxy: our own viewer (pages, progress, bookmarks, search). -->
-    <PdfReader
-      v-else-if="pdfJsUrl"
-      :book="book"
-      :pdf-url="pdfJsUrl"
-      @back="handleBack"
-      @close="handleClose"
-    />
+    <template v-else-if="enhanced">
+      <!-- Enhanced (flag pdf_enhanced): our own pdf.js viewer, served by the backend PDF proxy. -->
+      <PdfReader
+        v-if="pdfJsUrl"
+        :book="book"
+        :pdf-url="pdfJsUrl"
+        @back="handleBack"
+        @close="handleClose"
+      />
 
-    <!-- Google Drive link: embedded Drive preview. -->
-    <BookPdfViewer
+      <!-- Enhanced bar around the Google Drive preview (mock mode, or no proxy). -->
+      <BookPdfViewer
+        v-else-if="previewUrl"
+        :preview-url="previewUrl"
+        :book="book"
+        @back="handleBack"
+        @close="handleClose"
+      />
+
+      <div v-else class="book-pdf-view__error" role="alert">
+        {{ $t('pdfViewer.error') }}
+      </div>
+    </template>
+
+    <!-- Flag off: the original reader, unchanged. -->
+    <BookPdfViewerLegacy
       v-else-if="previewUrl"
       :preview-url="previewUrl"
-      :book="book"
-      @back="handleBack"
-      @close="handleClose"
+      @close="handleLegacyClose"
     />
 
     <div v-else class="book-pdf-view__error" role="alert">
@@ -36,15 +49,21 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { fetchBookById } from '../api/books.js'
 import { getDrivePreviewUrl } from '../utils/drive.js'
-import { resolvePdfUrl } from '../utils/pdf.js'
+import { getPdfJsUrl } from '../utils/pdf.js'
+import { useFeatureFlagsStore, FEATURE_FLAGS } from '../stores/featureFlags.js'
 import client from '../api/client.js'
 import BookPdfViewer from '../components/BookPdfViewer.vue'
+import BookPdfViewerLegacy from '../components/BookPdfViewerLegacy.vue'
 import PdfReader from '../components/PdfReader.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
+
+// Same switch as the API layer: mocks unless VITE_USE_MOCK_API is exactly 'false'.
+const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== 'false'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const flags = useFeatureFlagsStore()
 
 const book = ref(null)
 const isLoading = ref(false)
@@ -62,17 +81,26 @@ const previewUrl = computed(() => {
   return getDrivePreviewUrl(book.value.pdfUrl)
 })
 
-// Anything that is not a Drive link is the backend's PDF proxy (absolute, or
-// relative to the API base URL), which our own viewer can read.
-const pdfJsUrl = computed(() => {
-  if (!book.value?.pdfUrl || previewUrl.value) {
-    return null
-  }
-  return resolvePdfUrl(book.value.pdfUrl, client.defaults.baseURL)
-})
+// Flag pdf_enhanced: reader bar, in-app PDF viewer, progress, bookmarks, phone layout.
+const enhanced = computed(() => flags.isEnabled(FEATURE_FLAGS.PDF_ENHANCED))
+
+// In mock mode there is no API host, so relative paths point at the portal's own
+// files (e.g. the bundled sample PDF under /samples).
+const pdfJsUrl = computed(() =>
+  getPdfJsUrl(book.value, {
+    useMock: USE_MOCK_API,
+    apiBaseUrl: client.defaults.baseURL,
+    portalBaseUrl: `${window.location.origin}${import.meta.env.BASE_URL}`
+  })
+)
 
 function handleBack() {
   router.push({ name: 'book-detail', params: { id: bookId.value } })
+}
+
+// The original reader just closes the window.
+function handleLegacyClose() {
+  window.close()
 }
 
 // window.close() is ignored when the tab wasn't opened by the portal (e.g. a
@@ -96,7 +124,9 @@ async function loadBook() {
       return
     }
 
-    book.value = await fetchBookById(bookId.value)
+    // Flags are read first-class here: the viewer to show depends on them.
+    const [loadedBook] = await Promise.all([fetchBookById(bookId.value), flags.ensureLoaded()])
+    book.value = loadedBook
     if (!book.value) {
       error.value = t('bookDetail.notFound')
     } else if (!book.value.pdfUrl) {
